@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<style>
+	.container {
+		background-color: white;
+		padding: 15px;
+		height: 200px;
+		width: 300px;
+		font-family: Georgia;
+		color: black;
+		font-size: 15px;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		-ms-transform: translate(-50%, -50%);
+		transform: translate(-50%, -50%);
+		text-align: center;
+	}
+
+	input {
+		border-radius: 1em;
+		text-align: center;
+		font-family: Georgia;
+		font-size: 15px;
+	}
+
+	select {
+		border-radius: 1em;
+		font-family: Georgia;
+		font-size: 15px;
+	}
+
+	button {
+		border-radius: 1em;
+		font-family: Georgia;
+		font-size: 15px;
+	}
+
+	button:active {
+		filter: brightness(80%);
+	}
+
+	.loader {
+		border: 5px solid #f3f3f3;
+		border-radius: 50%;
+		border-top: 5px solid #3498db;
+		border-bottom: 5px solid #3498db;
+		position: absolute;
+		top: calc(50% - 30px);
+		left: calc(50% - 30px);
+		width: 50px;
+		height: 50px;
+		z-index: 10;
+		animation: spin 2s linear infinite;
+	}
+
+	@keyframes spin {
+		0% {
+			transform: rotate(0deg);
+		}
+
+		100% {
+			transform: rotate(360deg);
+		}
+	}
+</style>
+
+<body>
+	<div id="loader" class="loader" style="visibility: hidden;"></div>
+	<div id="container" class="container">
+		<form id="form">
+			<label for="class">Class</label>
+			<input type="text" id="class" required readonly="readonly"><br>
+			<label for="subclass">Subclass</label>
+			<input type="text" id="subclass" readonly="readonly"><br>
+			<label for="level">Level</label>
+			<input type="number" id="level" style="width: 50px;" min="1" max="20" required readonly="readonly"
+				onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+			<label for="hitdie">Hit Die: d</label>
+			<input type="number" id="hitdie" style="width: 50px" min="6" max="12" step="2" required readonly="readonly"
+				onkeypress="return event.charCode >= 48 && event.charCode <= 57"><br>
+			<label for="spellcasting">Spellcasting:</label>
+			<select id="spellcasting" readonly="readonly">
+				<option>None</option>
+				<option>Full</option>
+				<option>Half</option>
+				<option>Third</option>
+				<option>Pact</option>
+			</select><br>
+			<button id="addedit" onclick="submissionHandler()" disabled>Save Class</button><br>
+			<button type="button" id="remove" onclick="removeClass()" disabled>Remove Class</button>
+			<div>Note: The process of updating the sheet can sometimes take up to 20-40 seconds.</div>
+		</form>
+	</div>
+</body>
+
+<script>
+	/**
+	 * @param {string} f
+	 * @param {any[]} [arr]
+	*/
+	function runGoogleWithReturn(f, arr) {
+		if (arguments.length == 1) {
+			return new Promise((resolve, reject) => {
+				google.script.run
+					.withSuccessHandler(stuff => resolve(stuff))
+					.withFailureHandler(err => reject(err))
+					.callLibraryFunction(`CharacterSheetCode.${f}`)
+			})
+		} else if (arguments.length == 2) {
+			return new Promise((resolve, reject) => {
+				google.script.run
+					.withSuccessHandler(stuff => resolve(stuff))
+					.withFailureHandler(err => reject(err))
+					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+			})
+		}
+	}
+	/**
+	 * @param {string} f
+	 * @param {any[]} [arr]
+	*/
+	function runGoogle(f, arr) {
+		if (arguments.length == 1) {
+			return new Promise((resolve, reject) => {
+				google.script.run
+					.withSuccessHandler(() => resolve(''))
+					.withFailureHandler(err => reject(err))
+					.callLibraryFunction(`CharacterSheetCode.${f}`)
+			})
+		} else if (arguments.length == 2) {
+			return new Promise((resolve, reject) => {
+				google.script.run
+					.withSuccessHandler(() => resolve(''))
+					.withFailureHandler(err => reject(err))
+					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+			})
+		}
+	}
+	document.querySelectorAll('input').forEach(x => x.autocomplete = 'off')
+	var x, y
+	let ID = t => document.getElementById(t)
+	/** @param {string} v */
+	let capitalizer = v => { //this capitalizes the traits of the weapon
+		if (v.includes(' ')) { //if v includes spaces
+			const arr = v.split(" ").map(x => x.trim())
+			for (j in arr) {
+				if (arr[j].includes('\n')) {
+					break
+				} else {
+					arr[j] = arr[j].charAt(0).toUpperCase() + arr[j].slice(1).toLowerCase()
+				}
+			}
+			return arr.join(" ")
+		} else {
+			return v.charAt(0).toUpperCase() + v.slice(1).toLowerCase()
+		}
+	}
+	var loader = ID('loader')
+	document.addEventListener("DOMContentLoaded", async () => {
+		console.log("Loading...")
+		loader.style.visibility = 'visible'
+		const res = await runGoogleWithReturn('getClassInfo')
+		x = res.arr[1]
+		y = res.arr[0]
+		runGoogle('clearClassEdit')
+		switch (res.arr[0]) {
+			case 'edit':
+				ID('class').value = res.arr[2].class
+				ID('subclass').value = res.arr[2].subclass
+				ID('level').value = res.arr[2].level
+				ID('hitdie').value = res.arr[2].hitdie
+				ID('spellcasting').value = res.arr[2].spells
+				makeEditable()
+				break
+			case 'add':
+				makeEditable()
+				break
+		}
+		function makeEditable() {
+			ID('class').readOnly = false
+			ID('subclass').readOnly = false
+			ID('level').readOnly = false
+			ID('level').max = (20 - res.lvl) + (res.arr[2] ? Number(res.arr[2].level) : 0)
+			ID('hitdie').readOnly = false
+			ID('spellcasting').readOnly = false
+			ID('addedit').disabled = false
+			ID('remove').disabled = false
+			loader.style.visibility = 'hidden'
+			console.log("Loaded")
+		}
+	})
+
+	function submissionHandler() {
+		event.preventDefault()
+		try {
+			const a = ID('class').value
+			const b = ID('level').value
+			const c = ID('hitdie').value
+			if (a != '' && b != '' && c != '') {
+				var className = ID('class').value,
+					subclass = ID('subclass').value,
+					level = Number(ID('level').value),
+					levelMax = Number(ID('level').max),
+					hitdie = Number(ID('hitdie').value),
+					spells = ID('spellcasting').value
+				/* console.log(`Vals ==> HitDie: ${hitdie} | Level: ${level} | LevelMax: ${levelMax}}`)
+				console.log(`Types ==> HitDie: ${typeof hitdie} | Level: ${typeof level} | LevelMax: ${typeof levelMax}}`)
+				console.log(hitdie % 2 == 0, hitdie >= 6, hitdie <= 12, level <= levelMax) */
+				if ([6, 8, 10, 12].some(x => x == hitdie) && level <= levelMax) {
+					loader.style.visibility = 'visible'
+					setTimeout(() => google.script.host.close(), 1500)
+					runGoogle("addEditInfo", [capitalizer(className), capitalizer(subclass), level, hitdie, spells, x, y])
+				}
+			} else {
+				console.log(a, b, c)
+			}
+		} catch (err) { console.error(err) }
+	}
+
+	function removeClass() {
+		loader.style.visibility = 'visible'
+		setTimeout(() => google.script.host.close(), 1500)
+		runGoogle("addEditInfo", ['', '', '', '', '', x])
+	}
+</script>
+
+</html>

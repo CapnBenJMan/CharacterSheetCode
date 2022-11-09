@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+</head>
+
+<style>
+	html,
+	body {
+		height: 99%;
+		text-align: center;
+	}
+
+	.content {
+		font-family: Georgia;
+		font-size: 16px;
+		background-color: white;
+		color: black;
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+	}
+
+	input,
+	select,
+	label,
+	button {
+		font-family: inherit;
+		font-size: inherit;
+		vertical-align: middle;
+	}
+
+	input,
+	select,
+	button {
+		border-radius: 1em;
+	}
+
+	.loader {
+		border: 5px solid #f3f3f3;
+		border-radius: 50%;
+		border-top: 5px solid #3498db;
+		border-bottom: 5px solid #3498db;
+		position: absolute;
+		top: calc(50% - 30px);
+		left: calc(50% - 30px);
+		width: 50px;
+		height: 50px;
+		z-index: 10;
+		animation: spin 2s linear infinite;
+	}
+
+	.magic {
+		display: none !important;
+	}
+
+	.bonus {
+		text-align: center;
+		width: 35px;
+	}
+
+	.flexbox-search {
+		display: flex;
+		text-align: center;
+	}
+
+	.flexbox-search>div {
+		display: flex;
+		flex-direction: column;
+		flex: 1 1 100%;
+		min-width: 0;
+	}
+
+	.flexbox-search>div>input {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.output {
+		text-align: initial;
+		flex: 1;
+		outline: 1px solid black;
+		overflow: auto;
+	}
+
+	@keyframes spin {
+		0% {
+			transform: rotate(0deg);
+		}
+
+		100% {
+			transform: rotate(360deg);
+		}
+	}
+
+	.output table {
+		border-collapse: collapse;
+	}
+
+	.output table tr:nth-child(odd) {
+		background-color: #eee;
+	}
+</style>
+
+<body class="content">
+	<div id="loader" class="loader" style="visibility: hidden"></div>
+	<div>
+		<form style="width: 100%; margin: auto;" onsubmit="handler()" onreset="clear0()">
+			<div style="text-align: left;">
+				<label for="searchoptions">Search for: </label>
+				<select id="searchoptions" onchange="changer()">
+					<option value="class">Class Feature</option>
+					<option value="feat">Feat</option>
+					<option value="item">Magic Item</option>
+					<option value="spell">Spell</option>
+					<option value="race">Race</option>
+					<option value="background">Background</option>
+					<option value="misc">Miscellaneous</option>
+				</select>
+			</div>
+			<div id="variance" style="flex: 1">
+				<div class="flexbox-search">
+					<div>
+						<div>Class</div>
+						<input id="classname" data-option="class" type="text" required>
+					</div>
+					<div>
+						<div>Subclass</div>
+						<input id="subclassname" type="text" data-option="class" placeholder="Hover to see options"
+							title="Leave blank to search only the base class. Include to search in the subclass.">
+					</div>
+					<div>
+						<div>Seach by:</div>
+						<select name="classSearch" id="classSearch" onchange="classChange()">
+							<option value="name">Feature Name</option>
+							<option value="level">Feature Level</option>
+							<option value="sub">Subfeature</option>
+						</select>
+					</div>
+				</div>
+				<div id="subsearchdiv" class="magic" style="display: flex"><label for="subsearch"
+						style="display:flex; align-items: center;">Subfeature
+						Type: </label>
+					<input id="subsearch" type="text" style="flex: 1"
+						placeholder="Ex. Eldritch Invocation, Infusion, etc.">
+				</div>
+				<div id="searchdiv" style="display: flex;">
+					<input id="searchbar" type="text" style="flex: 1">
+					<button>Search</button>
+					<button type="reset">Clear</button>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div id="outputdiv" class="output">
+	</div>
+</body>
+
+<script>
+	/**
+	 * @param {string} f
+	 * @param {any[]} [arr]
+	*/
+	function runGoogleWithReturn(f, arr) {
+		if (arguments.length == 1) {
+			return new Promise((resolve, reject) => {
+				google.script.run
+					.withSuccessHandler(stuff => resolve(stuff))
+					.withFailureHandler(err => reject(err))
+					.callLibraryFunction(`CharacterSheetCode.${f}`)
+			})
+		} else if (arguments.length == 2) {
+			return new Promise((resolve, reject) => {
+				google.script.run
+					.withSuccessHandler(stuff => resolve(stuff))
+					.withFailureHandler(err => reject(err))
+					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+			})
+		}
+	}
+	/**
+	 * @param {string} f
+	 * @param {any[]} [arr]
+	*/
+	function runGoogle(f, arr) {
+		if (arguments.length == 1) {
+			return new Promise((resolve, reject) => {
+				google.script.run
+					.withSuccessHandler(() => resolve(''))
+					.withFailureHandler(err => reject(err))
+					.callLibraryFunction(`CharacterSheetCode.${f}`)
+			})
+		} else if (arguments.length == 2) {
+			return new Promise((resolve, reject) => {
+				google.script.run
+					.withSuccessHandler(() => resolve(''))
+					.withFailureHandler(err => reject(err))
+					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+			})
+		}
+	}
+	/** @param {string} n */
+	let ID = n => document.getElementById(n)
+	/** @param {string} n */
+	let qry = n => document.querySelector(n)
+	/** @param {string} n */
+	let qryA = n => document.querySelectorAll(n)
+	/** @param {string} v */
+	let capitalizer = v => { //this capitalizes the traits of the weapon
+		if (v.includes(' ')) { //if v includes spaces
+			const arr = v.split(" ")
+			for (j in arr) {
+				if (arr[j].includes('\n')) {
+					break
+				} else {
+					arr[j] = arr[j].charAt(0).toUpperCase() + arr[j].slice(1).toLowerCase()
+				}
+			}
+			return arr.join(" ")
+		} else {
+			return v.charAt(0).toUpperCase() + v.slice(1).toLowerCase()
+		}
+	}
+	document.querySelectorAll('input').forEach(x => {
+		x.autocomplete = 'off'
+	})
+
+	let urlFormatter = n => n.replace(/'/g, ``).replace(/\/| /g, `-`).toLowerCase()
+
+	function changer() {
+		if (String(ID('searchoptions').value) != 'class') {
+			document.querySelector('form').style.display = 'flex'
+		} else {
+			document.querySelector('form').style.display = 'block'
+		}
+		ID('variance').innerHTML = searchOptions[String(ID('searchoptions').value)]
+		try {
+			const ih = ID('selector').innerHTML
+				.split(/(?<=>)(?:\n|\t)+?(?=<)/g)
+				.map(x => x.replace(/(?:\n|\t)/g, ''))
+				.sort((a0, b0) => {
+					const a = a0.match(/(?<=>).*?(?=<)/)[0].toUpperCase()
+					const b = b0.match(/(?<=>).*?(?=<)/)[0].toUpperCase()
+					if (a < b) {
+						return -1;
+					}
+					if (a > b) {
+						return 1;
+					}
+					return 0
+				}).filter(x => x != '<option value=""></option>').join("\n")
+			ID('selector').innerHTML = ih
+		} catch { }
+		document.querySelectorAll('input').forEach(x => {
+			x.autocomplete = 'off'
+		})
+	}
+
+	function classChange() {
+		const classval = String(ID('classSearch').value)
+		if (classval == 'sub') {
+			ID('subsearchdiv').className = ''
+			ID('subsearch').required = true
+		} else {
+			ID('subsearchdiv').className = 'magic'
+			ID('subsearch').required = false
+		}
+	}
+
+	async function handler() {
+		ID('loader').style.visibility = 'visible'
+		try {
+			event.preventDefault()
+			ID('outputdiv').innerHTML = ''
+			const searches = {
+				"class": "classSearch",
+				"feat": "searchbar",
+				"item": "searchbar",
+				"spell": "searchbar",
+				"race": "searchbar",
+				"background": "searchbar",
+				"misc": "selector"
+			}
+			const search = ID(searches[ID('searchoptions').value]).value == 'level' ?
+				Number(ID('searchbar').value.match(/\d+/)) :
+				searches[ID('searchoptions').value] == 'selector' ?
+					String(ID('selector').value) :
+					String(ID('searchbar').value)
+			var baseURL = 'http://dnd5e.wikidot.com'
+			const Regex = {
+				prettier: /(?:<\/?a.*?>|(?:id|class)=".+?"|<script(?:.|\n)+?<\/script>)/g
+			}
+			switch (String(ID('searchoptions').value)) {
+				case "class":
+					const Class = urlFormatter(String(ID('classname').value))
+					const subclass = urlFormatter(String(ID('subclassname').value))
+					const subsearch = urlFormatter(String(ID('subsearch').value))
+					baseURL += `/${Class}`
+					if (subclass != '') baseURL += `:${subclass}`
+					if (subsearch != '' && String(ID('classSearch').value) == 'sub') baseURL += `:${subsearch}`
+					Regex.featureNamePt1 = new RegExp(`<span>${(String(ID('classSearch').value) == 'name') ? capitalizer(search) :
+						''}<\\/span><\\/h(?<num>\\d)>\\n<p>(?:.|\\n)*?(?=\\n<h\\k<num>)`, 'i')
+					Regex.featureNamePt2 = new RegExp(`(?<=<span>${(String(ID('classSearch').value) == 'name') ? capitalizer(search) :
+						''}<\\/span><\\/h)\\d+(?=>)`, '')
+					Regex.featureLevelPt1 = new RegExp(
+						`<span>.+<\\/span><\\/h(?<num>\\d)>\\n<p>(?:.|\\n){1,200}?\\b${search}(?:st|nd|rd|th) level(?:.|\\n)*?(?=(?:\\n<h\\k<num>|\\n?\\t*?<\\/div>))`,
+						'gi')
+					Regex.featureLevelPt2 = new RegExp(`(?<=<\\/span><\\/h)\\d+(?=>)`, '')
+					Regex.featureSubPt1 = new RegExp(
+						`(?:<span.*?>){1,2}${capitalizer(search)}(?:<\\/span>\\n?\\t*?){1,2}<\\/h(?<num>\\d)>(?:.|\\n)*?(?=(?:\\n<h\\k<num>|\\n?\\t*?<\\/div>))`,
+						'i')
+					Regex.featureSubPt2 = new RegExp(`(?<=<\\/span><\\/h)\\d+(?=>)`, '')
+					break
+				case "feat":
+					baseURL += `/feat:${urlFormatter(String(ID('searchbar').value))}`
+					break
+				case "item":
+					baseURL += `/wondrous-items:${urlFormatter(String(ID('searchbar').value))}`
+					break
+				case "spell":
+					baseURL += `/spell:${urlFormatter(String(ID('searchbar').value))}`
+					break
+				case "race":
+					baseURL += `/${urlFormatter(String(ID('searchbar').value))}`
+					break
+				case "background":
+					baseURL += `/background:${urlFormatter(String(ID('searchbar').value))}`
+					break
+				case "misc":
+					baseURL += `/${ID('selector').value}`
+					break
+			}
+			/** @type {string} */
+			var response0, bo = false
+			try {
+				response0 = await runGoogleWithReturn('returnFetch', [baseURL])
+			} catch {
+				try {
+					if (String(ID('searchoptions').value) == 'spell') throw ''
+					baseURL += 's'
+					bo = true
+					response0 = await runGoogleWithReturn('returnFetch', [baseURL])
+				} catch {
+					if (bo) baseURL = baseURL.slice(0, -1)
+					baseURL += '-ua'
+					response0 = await runGoogleWithReturn('returnFetch', [baseURL])
+				}
+			}
+			const response = response0
+			var el = document.createElement('html')
+			el.innerHTML = response;
+			try { el.querySelector('#toc').remove() } catch { }
+			try {
+				el.querySelectorAll('span.hover').forEach(x => {
+					const span = x.querySelector('span')
+					span.outerHTML = ` (${span.innerHTML}) `
+				})
+			} catch { }
+			if (String(ID('searchoptions').value) == 'misc' && String(ID('selector').value) != 'trinkets') {
+				try { el.querySelectorAll('.yui-nav').forEach(x => x.remove()) } catch { }
+				try { el.querySelectorAll('.yui-content>div').forEach(x => x.style.display = '') } catch { }
+			}
+			if (search != '') {
+				switch (String(ID('searchoptions').value)) {
+					case "class":
+						const features = el.querySelector('.feature')
+						switch (String(ID('classSearch').value)) {
+							case 'name':
+								{
+									const [refine] = features.innerHTML.match(Regex.featureNamePt1)
+									const parsedHTML = `<h${refine.match(Regex.featureNamePt2)}>${refine.replace(Regex.prettier, '')}`
+									ID('outputdiv').innerHTML = parsedHTML
+									break
+								}
+							case 'level':
+								{
+									const refine = features.innerHTML.match(Regex.featureLevelPt1)
+										.filter(x => x.length > 10)
+										.map(x => `<h${x.match(Regex.featureLevelPt2)}>${x.replace(Regex.prettier, '')}`)
+										.join('')
+									ID('outputdiv').innerHTML = refine
+									break
+								}
+							case 'sub':
+								{
+									const [refine] = features.innerHTML.match(Regex.featureSubPt1)
+									const parsedHTML = `<h${refine.match(Regex.featureSubPt2)}>${refine.replace(Regex.prettier, '')}`
+									ID('outputdiv').innerHTML = parsedHTML
+									break
+								}
+						}
+						break
+					case "feat":
+						const feat = el.querySelector('#page-content').innerHTML.replace(Regex.prettier, '')
+						ID('outputdiv').innerHTML = `<h3><span>${capitalizer(search)}</span></h3>` + feat
+						break
+					case "item":
+						const item = el.querySelector('#page-content').innerHTML.replace(Regex.prettier, '')
+						ID('outputdiv').innerHTML = `<h3><span>${capitalizer(search)}</span></h3>` + item
+						break
+					case "spell":
+						var spell0 = el.querySelector('#page-content')
+						spell0.querySelectorAll('div').forEach(x => {
+							if (/\+.*?Show.*?HB.*?Suggestion/.test(x.innerHTML)) x.remove()
+						})
+						const spell = spell0.innerHTML.replace(Regex.prettier, '')
+						ID('outputdiv').innerHTML = `<h3><span>${capitalizer(search) + (baseURL.slice(-3) == '-ua' ? ' (UA)' : '')}</span></h3>` + spell
+						break
+					case 'race':
+						el.querySelectorAll('#page-content h1').forEach(x => x.outerHTML = `<h2>${x.innerHTML}</h2>`)
+						const race = el.querySelector('#page-content').innerHTML
+							.replace(Regex.prettier, '')
+						ID('outputdiv').innerHTML = `<h1><span>${capitalizer(search)}</span></h1>` + race
+						break
+					case 'background':
+						el.querySelectorAll('#page-content h2').forEach(x => x.outerHTML = `<h3>${x.innerHTML}</h3>`)
+						el.querySelectorAll('#page-content h1').forEach(x => x.outerHTML = `<h2>${x.innerHTML}</h2>`)
+						const bg = el.querySelector('#page-content').innerHTML
+							.replace(Regex.prettier, '')
+						ID('outputdiv').innerHTML = `<h1><span>${capitalizer(search)}</span></h1>` + bg
+						break
+					case 'misc':
+						const misc = el.querySelector('#page-content').innerHTML.replace(Regex.prettier, '')
+						const title = qry(`option[value="${ID('selector').value}"`).innerHTML
+						ID('outputdiv').innerHTML = `<h1><span>${title}</span></h1>` + misc
+						if (title == 'Trinkets') {
+							const sources = Array.from(qryA('#outputdiv>div>ul>li>em')).map(x => x.innerHTML)
+							const lists = Array.from(qryA('#outputdiv>div>div>div')).map(x => x.innerHTML)
+							ID('outputdiv').innerHTML = sources.reduce((final, cur, i) => final + `<h2>${cur}</h2><div>${lists[i]}</div>`, '')
+						} else if (title == 'Tools') {
+
+						}
+						break
+				}
+			} else if (String(ID('searchoptions').value) == 'class') {
+				ID('outputdiv').innerHTML = el.querySelector('#page-content').innerHTML.replace(Regex.prettier, '')
+			}
+		} catch (err) {
+			ID('outputdiv').innerHTML = `An error occurred. Either the thing you requested doesn't exist, or the program encountered an issue while retrieving it.
+If you attempt this again, please make sure you entered it correctly.`
+			console.error(err);
+		}
+		ID('loader').style.visibility = 'hidden'
+	}
+
+	function clear0() {
+		ID('outputdiv').innerHTML = ''
+		ID('variance').innerHTML = searchOptions['class']
+		document.querySelector('form').style.display = 'block'
+		document.querySelectorAll('input').forEach(x => {
+			x.autocomplete = 'off'
+		})
+	}
+
+	// const FinalDestination = {}
+	// var duplicate = 0
+	// function tables() {
+	// 	const odiv = ID('outputdiv')
+	// 	/** 
+	// 	 * @param {Element|HTMLElement} el
+	// 	 * @param {string} n
+	// 	 */
+	// 	let eqryA = (el, n) => el.querySelectorAll(n)
+	// 	/** 
+	// 	 * @param {Element|HTMLElement} el
+	// 	 * @param {string} n
+	// 	 */
+	// 	let eqry = (el, n) => el.querySelector(n)
+
+	// 	eqryA(odiv, 'table').forEach(a => {
+	// 		const colNames = Array.from(eqry(a, 'tr:has(th)').cells).map(b => b.innerHTML)
+	// 		if (colNames[0] != 'Activity') {
+	// 			const rows = Array.from(eqryA(a, 'tr:has(td)'))
+	// 			const storage = []
+	// 			rows.forEach(row => {
+	// 				const temp = {}
+	// 				colNames.forEach((col, i) => {
+	// 					temp[i == 0 ? "Name" : col] = eqry(row, `td:nth-child(${i + 1}`).innerHTML.replace(/&\w+?;/g, m => {
+	// 						const stuff = {
+	// 							"&lt;": "<",
+	// 							"&gt;": ">",
+	// 							"&amp;": "&",
+	// 							"&nbsp;": " "
+	// 						}
+	// 						return m in stuff ? stuff[m] : m
+	// 					})
+	// 				})
+	// 				storage.push(temp)
+	// 			})
+	// 			if (colNames[0] in FinalDestination) FinalDestination[colNames[0] + duplicate++] = storage
+	// 			else FinalDestination[colNames[0]] = storage
+	// 		}
+	// 	})
+
+	// 	console.log(FinalDestination)
+	// }
+
+	// function cfd() {
+	// 	const str = JSON.stringify(FinalDestination, undefined, 4)
+	// 	navigator.clipboard.writeText(str)
+	// }
+
+	const searchOptions = {
+		"class": `<div class="flexbox-search">
+	<div>
+		<div>Class</div>
+		<input id="classname" data-option="class" type="text" required>
+	</div>
+	<div>
+		<div>Subclass</div>
+		<input id="subclassname" type="text" data-option="class" placeholder="Hover to see options"
+			title="Leave blank to search only the base class. Include to search in the subclass.">
+	</div>
+	<div>
+		<div>Seach by:</div>
+		<select name="classSearch" id="classSearch" onchange="classChange()">
+			<option value="name">Feature Name</option>
+			<option value="level">Feature Level</option>
+			<option value="sub">Subfeature</option>
+		</select>
+	</div>
+</div>
+<div id="subsearchdiv" class="magic" style="display: flex"><label for="subsearch"
+		style="display:flex; align-items: center;">Subfeature
+		Type: </label>
+	<input id="subsearch" type="text" style="flex: 1"
+		placeholder="Ex. Eldritch Invocation, Infusion, etc.">
+</div>
+<div id="searchdiv" style="display: flex;">
+	<input id="searchbar" type="text" style="flex: 1">
+	<button>Search</button>
+	<button type="reset">Clear</button>
+</div>`,
+		"feat":
+			`<div id="searchdiv" style="display: flex;">
+	<input id="searchbar" type="text" style="flex: 1" required>
+	<button>Search</button>
+	<button type="reset">Clear</button>
+</div>`,
+		"item":
+			`<div id="searchdiv" style="display: flex;">
+	<input id="searchbar" type="text" style="flex: 1" required>
+	<button>Search</button>
+	<button type="reset">Clear</button>
+</div>`,
+		"spell":
+			`<div id="searchdiv" style="display: flex;">
+	<input id="searchbar" type="text" style="flex: 1" required>
+	<button>Search</button>
+	<button type="reset">Clear</button>
+</div>`,
+		"race":
+			`<div id="searchdiv" style="display: flex;">
+	<input id="searchbar" type="text" style="flex: 1" required>
+	<button>Search</button>
+	<button type="reset">Clear</button>
+</div>`,
+		"background":
+			`<div id="searchdiv" style="display: flex;">
+	<input id="searchbar" type="text" style="flex: 1" required>
+	<button>Search</button>
+	<button type="reset">Clear</button>
+</div>`,
+		"misc":
+			`<div id="searchdiv" style="display: flex;">
+	<select id="selector" style="flex: 1">
+		<option value="adventuring-gear">Adventuring Gear</option>
+		<option value="armor">Armor</option>
+		<option value="weapons">Weapons</option>
+		<option value="firearms">Firearms (DMG)</option>
+		<option value="fighter:gunslinger:firearm-properties">Firearms (Exandria)</option>
+		<option value="explosives">Explosives</option>
+		<option value="currency">Currency</option>
+		<option value="poisons">Poisons</option>
+		<option value="tools">Tools</option>
+		<option value="trinkets">Trinkets</option>
+	</select>
+	<button>Search</button>
+	<button type="reset">Clear</button>
+</div>`
+	}
+</script>
+
+</html>

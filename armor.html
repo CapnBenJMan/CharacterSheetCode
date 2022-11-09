@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<base target="_top">
+</head>
+
+<style>
+	.content {
+		text-align: center;
+		vertical-align: middle;
+		font-family: Georgia;
+		background-color: white;
+		color: black;
+		width: 450px;
+	}
+
+	input,
+	select,
+	label {
+		font-family: inherit;
+		font-size: inherit;
+		vertical-align: middle;
+	}
+
+	input,
+	select {
+		border-radius: 1em;
+	}
+
+	input[type="checkbox"] {
+		vertical-align: middle;
+	}
+
+	input[type=radio] {
+		vertical-align: top;
+	}
+
+	.loader {
+		border: 5px solid #f3f3f3;
+		border-radius: 50%;
+		border-top: 5px solid #3498db;
+		border-bottom: 5px solid #3498db;
+		width: 15px;
+		height: 15px;
+		position: absolute;
+		animation: spin 2s linear infinite;
+	}
+
+	.magic {
+		display: none !important;
+	}
+
+	.bonus {
+		text-align: center;
+		width: 35px;
+	}
+
+	@keyframes spin {
+		0% {
+			transform: rotate(0deg);
+		}
+
+		100% {
+			transform: rotate(360deg);
+		}
+	}
+</style>
+
+<body class="content">
+	<strong>If you want to forgo this process, click the X at the top right of this dialog.<br>
+		You can hover over a number or text input to see what it represents.</strong>
+	<form id="form" onsubmit="submission()">
+		<!--Run submission when confirm button is pressed-->
+
+		<!--Base Armor-->
+		<input type="radio" name="selection" id="ba" onclick="selector('ba')">
+		<label for="ba">Base Armor</label>
+		<!--Selection input-->
+		<select id="armortypes" name="types" onchange="changer()" disabled>
+			<option value="Custom">Custom</option>
+		</select>
+		<input type="number" value="0" id="armorbonus" class="bonus" title="Armor Bonus"
+			onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 45" disabled><br>
+		<span id="customarmor">
+			<label for="customname">Armor Name : </label>
+			<input id="customname" type="text"><br>
+			<label for="custombase">Base AC: </label>
+			<input id="custombase" type="number" value="10" class="bonus" min="1"
+				onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 45" disabled>
+			<input id="customcheck" type="checkbox" onchange="customCheck()" disabled>
+			<label for="customcheck">:+Dex?</label>
+			<span id="dexcontainer" class="magic">
+				<input id="dexmax" type="number" min="0" class="bonus"
+					onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 45">
+				<label for="dexmax"> :Dex Max</label>
+			</span><br>
+			<input id="strengthReq" type="checkbox" onchange="customStr()" disabled>
+			<label for="strengthReq">: Strength Requirement?</label>
+			<span id="minstr" class="magic">
+				<label for="minSTR">Strength Min: </label>
+				<input id="minSTR" min="1" value="1" type="number" class="bonus"
+					onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 45"
+					onchange="changer()">
+			</span>
+			<br>
+			<input id="customStealth" type="checkbox" disabled>
+			<label for="customStealth"> : Stealth Disadvantage?</label><br>
+		</span>
+		<label for="banotes" title="Text you enter here will appear beside Base Armor in parentheses">Notes:</label>
+		<input type="text" id="banotes" title="Text you enter here will appear beside Base Armor in parentheses"><br>
+
+		<!--Unarmored Defense-->
+		<input type="radio" name="selection" id="ud" onclick="selector('ud')">
+		<label for="ud">Unarmored Defense</label>
+		<!--Unarmored Defense selection input-->
+		<select id="stats" name="stats" disabled>
+			<option value="Str">Strength</option>
+			<option value="Con">Constitution</option>
+			<option value="Int">Intelligence</option>
+			<option value="Wis">Wisdom</option>
+			<option value="Cha">Charisma</option>
+		</select><br>
+		<label for="udnotes"
+			title="Text you enter here will appear beside Unarmored Defense in parentheses">Notes:</label>
+		<input type="text" id="udnotes"
+			title="Text you enter here will appear beside Unarmored Defense in parentheses"><br>
+
+		<!--Natural Armor-->
+		<input type="radio" name="selection" id="nata" onclick="selector('nata')">
+		<label for="nata">Natural Armor</label>
+		<input type="number" value="0" id="natbase" class="bonus" title="Base AC" min="0"
+			onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 45" disabled>
+		<!--Natural Armor selection input-->
+		<select id="nataStats" name="NatStats" disabled>
+			<option value="">None</option>
+			<option value="Str">Strength</option>
+			<option value="Dex">Dexterity</option>
+			<option value="Con">Constitution</option>
+			<option value="Int">Intelligence</option>
+			<option value="Wis">Wisdom</option>
+			<option value="Cha">Charisma</option>
+		</select><br>
+		<label for="natnotes" title="Text you enter here will appear beside Natural Armor in parentheses">Notes:</label>
+		<input type="text" id="natnotes"
+			title="Text you enter here will appear beside Natural Armor in parentheses"><br>
+
+		<!--No Armor-->
+		<input type="radio" name="selection" id="na" onclick="selector('na')" checked>
+		<label for="na">No Armor</label><br>
+
+		<!--Shield-->
+		<input type="checkbox" id="shield" onclick="viewer()">
+		<label for="shield">Shield: 2 + </label>
+		<input type="number" value="0" id="shieldbonus" class="bonus" title="Shield Bonus"
+			onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 45" disabled><br>
+		<label for="shieldnotes" title="Text you enter here will appear beside Shield in parentheses">Notes:</label>
+		<input type="text" id="shieldnotes" title="Text you enter here will appear beside Shield in parentheses"><br>
+
+		<!--Other Bonuses-->
+		<label>Bonuses from other items :</label>
+		<input type="number" value="0" id="otherbonus" class="bonus"
+			onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 45"><br>
+		<label for="othernotes" title="Text you enter here will appear beside Other Items in parentheses">Notes:</label>
+		<input type="text" id="othernotes"
+			title="Text you enter here will appear beside Other Items in parentheses"><br>
+
+		<!--Warnings-->
+		<!--Unarmored Defense Shield Warning-->
+		<div id="warning" style="color: #c00;" class="magic">
+			Warning: Not all Unarmored Defense features allow for the use of a Shield.
+			Make sure the feature you have access to allows for the use of a shield before proceeding.
+		</div>
+		<!--Base Armor Strength Requirement Warning-->
+		<div id="warning1" style="color: #c00;" class="magic">
+			Warning: You do not meet the Strength requirement of this armor. Equipping this armor without meeting
+			the
+			requirement will reduce your walking speed by 10ft.
+		</div>
+
+		<input type="submit" value="Confirm" id="confirm"><span id="loader" class="loader"
+			style="visibility: hidden;"></span>
+	</form>
+</body>
+
+<script>
+	/** Returns the value of the function called
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
+	*/
+	function runGoogleWithReturn(f, arr) {
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
+
+	}
+	/** Simply calls a function with no return value
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
+	*/
+	function runGoogle(f, arr) {
+		if (arguments.length == 1) {
+			return new Promise((resolve, reject) => {
+				google.script.run
+					.withSuccessHandler(() => resolve(''))
+					.withFailureHandler(err => reject(err))
+					.callLibraryFunction(`CharacterSheetCode.${f}`)
+			})
+		} else if (arguments.length == 2) {
+			return new Promise((resolve, reject) => {
+				google.script.run
+					.withSuccessHandler(() => resolve(''))
+					.withFailureHandler(err => reject(err))
+					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+			})
+		}
+	}
+	/** @param {string} n */ let ID = n => document.getElementById(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qry = (n, el) => (el != undefined) ? el.querySelector(n) : document.querySelector(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qryA = (n, el) => (el != undefined) ? el.querySelectorAll(n) : document.querySelectorAll(n)
+
+	qryA('input').forEach(x => x.autocomplete = 'off') // prevent text inputs from showing autocomplete suggestions
+
+	/** Capitalizes the traits of the weapon
+	* @param {string} v */
+	let capitalizer = v => {
+		if (v.includes(' ')) { // if v includes spaces
+			const arr = v.split(" ") // split v on spaces
+			for (j in arr) { // loop through arr
+				if (arr[j].includes('\n')) break // break the loop if arr[j] includes \n
+				else arr[j] = arr[j].charAt(0).toUpperCase() + arr[j].slice(1).toLowerCase()
+				// ^otherwise set arr[j] to itself capitalized
+			}
+			return arr.join(" ") // return the reformatted array joined by spaces
+		} else return v.charAt(0).toUpperCase() + v.slice(1).toLowerCase() // otherwise, return capitalized word
+	}
+
+	/** @type {{name: string,ACText: string,ACFormula: string,strReq: string,stealth: string}[]} */	var armorOptions
+	/** @type {number} */ var str
+
+	/** @param {string} x */
+	function selector(x) {
+		const n = { // object for looping through later
+			baSelect: ID('armortypes'),
+			baBonus: ID('armorbonus'),
+			udSelect: ID('stats'),
+			natSelect: ID('nataStats'),
+			natBase: ID('natbase')
+		},
+			warning1 = ID('warning1'), // this warning is for the strength requirement warning
+			customarmor = ID('customarmor') // this is the custom armor span
+		const current = armorOptions.find(y => y.name.toLowerCase() == n.baSelect.value.toLowerCase()) || {},
+			requirement = ('strReq' in current && current.strReq != '-') ? Number(current.strReq.slice(4)) : 0 // define requirement as the strength requirement for the current armor
+		switch (x) {
+			case 'ba': // if base armor is selected
+				for (let i in n) { // loop through n
+					switch (i) {
+						case 'baSelect':
+						case 'baBonus':
+							n[i].disabled = false // enable base armor selector and bonus input
+							break
+						default:
+							n[i].disabled = true // disable everything else
+							break
+					}
+				}
+				if (str < requirement) warning1.className = "" // show warning1 if character's strength is too low
+				else warning1.className = "magic" // otherwise hide warning1
+				break
+			case 'ud': // if unarmored defense is selected
+				for (let i in n) { // loop through n
+					switch (i) {
+						case 'udSelect':
+							n[i].disabled = false // enable unarmored defense selector
+							break
+						default:
+							n[i].disabled = true // disable everything else
+							break
+					}
+				}
+				warning1.className = "magic" // hide warning1
+				break
+			case 'nata': // if natural armor is selected
+				for (let i in n) { // loop through n
+					switch (i) {
+						case 'natSelect':
+						case 'natBase':
+							n[i].disabled = false // enable natural armor selector and base input
+							break
+						default:
+							n[i].disabled = true // disable everything else
+							break
+					}
+				}
+				warning1.className = "magic" // hide warning1
+				break
+			case 'na': // if no armor is selected
+				for (let i in n) n[i].disabled = true // disable everything
+				warning1.className = "magic" // hide warning1
+				break
+		}
+		customarmor.childNodes.forEach(y => y.disabled = !(x == 'ba')) // disable each child element if base armor is not selected
+		if (x === 'ba' && n.baSelect.value === 'Custom') ID('customname').required = true // if custom base armor is selected, make the name required
+		else ID('customname').required = false // otherwise make the name not required
+
+	}
+
+	function viewer() {
+		const shield = ID('shield'), // define reference to shield
+			shieldBonus = ID('shieldbonus'), // define reference to shield bonus
+			ud = ID('ud'), // define reference to unarmored defense
+			warning = ID('warning') // define reference to unarmored defense shield warning
+		if (shield.checked) { // if shield is selected
+			shieldBonus.disabled = false // enable shield bonus input
+			if (ud.checked) warning.className = "" // if unarmored defense is checked, show warning
+			else warning.className = "magic" // otherwise hide warning
+		} else { // otherwise
+			shieldBonus.disabled = true // disable shield bonus
+			warning.className = 'magic' // hide warning
+		}
+	}
+
+	const armor = ID('armortypes') // defines reference to type element and its options
+
+	async function submission() { // runs on pressing the confirm button
+		event.preventDefault()
+		ID('loader').style.visibility = 'visible' // set loader to visible
+		const selection = Array.from(document.getElementsByName('selection')).find(x => x.checked).id
+		await runGoogle("armorSetter", [
+			selection, // selection in armorSetter
+			armor.value, // armor in armorSetter
+			ID('stats').value, // stat in armorSetter
+			ID('nataStats').value, // natStat in armorSetter
+			ID('shield').checked, // shield in armorSetter
+			{ // bonuses in armorSetter
+				armor: ID('armorbonus').value,
+				shield: ID('shieldbonus').value,
+				nat: ID('natbase').value,
+				other: ID('otherbonus').value
+			},
+			{ // notes in armorSetter
+				ba: ID('banotes').value,
+				ud: ID('udnotes').value,
+				nat: ID('natnotes').value,
+				shield: ID('shieldnotes').value,
+				other: ID('othernotes').value
+			},
+			{ // custom in armorSetter
+				name: ID('customname').value,
+				baseAC: Number(ID('custombase').value),
+				plusDex: ID('customcheck').checked,
+				dexMax: Number(ID('dexmax').value),
+				strReq: ID('strengthReq').checked,
+				minStr: Number(ID('minSTR').value),
+				disStealth: ID('customStealth').checked
+			}
+		])
+		google.script.host.close() // wait for armor to be set, then close dialog
+	}
+
+	document.addEventListener("DOMContentLoaded", async () => { // on DOM Content Loaded
+		armorOptions = await runGoogleWithReturn("armorInfo") // get the armor options
+		const array = await armorOptions // set array to armor options
+		const options = array.map(x => capitalizer(x.name)) // define options as the capitalised version of each name
+		for (let a of options) { // loop through options
+			const el = document.createElement("option") // create option element
+			el.textContent = a // set text content and value to a
+			el.value = a // ^^^
+			armor.appendChild(el) // add el to armor
+		}
+		str = Number(await runGoogleWithReturn('getStr')) // get strength score and save to str variable
+	})
+
+	function changer() { // triggers when base armor is changed 
+		const warning1 = ID('warning1'), // str requirement warning
+			baSelect = ID('armortypes'), // base armor selector
+			custom = ID('customarmor') // custom armor span
+		try {
+			if (baSelect.value.toLowerCase() !== 'custom') { // if base armor selection is not custom
+				ID('customname').required = false // make custom name input not required
+				custom.classList.toggle('magic', true) // hide custom if not already hidden
+				const current = armorOptions.find(x => x.name.toLowerCase() == baSelect.value.toLowerCase()) // get current armor
+				if (current.strReq != '-') doWarn(Number(current.strReq.slice(4))) // if current armor has a strength requirement, call doWarn
+			} else if (baSelect.value.toLowerCase() === 'custom') { // if base armor selection is custom
+				custom.classList.toggle('magic', false) // show custom if not already shown
+				ID('customname').required = true // make custom name input required
+				if (ID('strengthReq').checked) doWarn(Number(ID('minSTR').value)) // call do warn if strength requirement is selected
+			} else warning1.className = 'magic' // otherwise hide warning1
+		} catch (err) { console.error(err) } // log error if error
+
+		/** Shows or hides warning1 based on input
+		 * @param {number} req */
+		function doWarn(req) {
+			if (baSelect.value.toLowerCase() !== 'custom') { // if base armor selection is not custom
+				if (str < req) warning1.className = "" // if str < req show warning1
+				else warning1.className = "magic" // otherwise hide warning1
+			} else {
+				if (str < req && ID('strengthReq').checked) warning1.className = "" // show warning1 if str < req
+				else warning1.className = "magic" // otherwise hide warning1
+			}
+		}
+	}
+
+	qryA('#form input[type="radio"]').forEach(x => x.onchange = handler) // for each radio input, set the changer function to handler
+
+	/** Handles the selection between different armor types */
+	function handler() {
+		const shield = ID('shield'), // shield selection
+			strReq = ID('strengthReq'), // strength requirement
+			warn = ID('warning'), // shield warning
+			warn1 = ID('warning1'), // strength warning
+			sel = Array.from(document.getElementsByName('selection')).find(x => x.checked).id // get id of selected radio button
+		switch (sel) {
+			case 'ba': // case for base armor
+				warn.className = 'magic' // hide shield warning
+				const min = armor.value.toLowerCase() !== 'custom' ? // strength minimum
+					Number(armorOptions.find(x => x.name.toLowerCase() == armor.value.toLowerCase()).strReq.slice(4)) :
+					strReq.checked ? Number(ID('minSTR').value) : 0
+				if (str < min) warn1.className = '' // if strength is less than minimum, show warning 1
+				else warn1.className = 'magic' // otherwise, hide warning 1
+				break
+			case 'ud': // case for unarmored defense
+				warn1.className = 'magic' // hide strength requirement warning
+				if (shield.checked) warn.className = '' // if shield is selected, show warning
+				break
+			default:
+				warn.className = 'magic' // hide both warnings
+				warn1.className = 'magic' // ^^^
+		}
+	}
+
+	function customCheck() {
+		const check = ID('customcheck') // +dex checkbox
+		if (check.checked) ID('dexcontainer').className = '' // if checked, show options
+		else ID('dexcontainer').className = 'magic' // otherwise, hide options
+	}
+
+	function customStr() {
+		if (ID('strengthReq').checked) { // if custom strength requirement is checked
+			ID('minstr').className = '' // show strength requirement options
+			if (str < Number(ID('minSTR').value)) ID('warning1').className = '' // if str is less than minSTR val, show strength warning
+		} else {
+			ID('minstr').className = 'magic' // hide strength requirement options and warning
+			ID('warning1').className = 'magic' // ^^^
+		}
+	}
+</script>
+
+</html>

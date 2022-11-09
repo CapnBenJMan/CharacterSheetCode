@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<base target="_top">
+</head>
+<!--Built using Tabs template from w3schools-->
+<style>
+	body {
+		font-family: Georgia;
+		width: 600px;
+		height: 300px;
+		margin: 0px;
+	}
+
+	input,
+	button,
+	select {
+		border-radius: 1em;
+		font-family: Georgia;
+	}
+
+	/* Style the tab */
+	.tab {
+		overflow: hidden;
+		border: 1px solid #ccc;
+		background-color: #f1f1f1;
+		height: 45px;
+		text-align: center;
+	}
+
+	/* Style the buttons inside the tab */
+	.tab button {
+		background-color: inherit;
+		float: center;
+		border: none;
+		outline: none;
+		cursor: pointer;
+		padding: 15px;
+		transition: 0.3s;
+		font-size: 15px;
+		font-family: Georgia;
+	}
+
+	/* Change background color of buttons on hover */
+	.tab button:hover {
+		background-color: #ddd;
+	}
+
+	/* Create an active/current tablink class */
+	.tab button.active {
+		background-color: #ccc;
+	}
+
+	/* Style the tab content */
+	.tabcontent {
+		display: none;
+		padding: 10px;
+		border: 1px solid #ccc;
+		height: calc(300px - 45px);
+		border-top: none;
+		background-color: white;
+		color: black;
+	}
+
+	.savingthrow,
+	.skillcheck,
+	.checkbuilder {
+		display: inherit;
+	}
+
+	.scbutton {
+		font-family: Georgia;
+	}
+
+	.stbutton,
+	.cbbutton {
+		width: 98px;
+	}
+
+	.widebutton {
+		width: calc(98px * 2);
+	}
+
+	.triangle {
+		-webkit-text-stroke: 12px black;
+		color: transparent;
+		font-size: 200px;
+	}
+
+	.d4,
+	.d6,
+	.d8,
+	.d10,
+	.d12 {
+		width: 100px;
+		height: 100px;
+		position: relative;
+		float: left;
+		border: black solid 1px;
+	}
+
+	.d20 {
+		width: 200px;
+		height: 200px;
+		position: relative;
+		float: left;
+		border: black solid 1px;
+	}
+
+	@keyframes rotationA {
+		0% {
+			transform: rotate(0deg) scale(100%);
+		}
+
+		15% {
+			transform: rotate(90deg) scale(75%);
+		}
+
+		30% {
+			transform: rotate(180deg) scale(100%);
+		}
+
+		65% {
+			transform: rotate(360deg) scale(0%);
+		}
+
+		100% {
+			transform: rotate(720deg) scale(100%);
+		}
+	}
+
+	@keyframes rotationB {
+		0% {
+			transform: rotate(0deg) scale(75%);
+		}
+
+		15% {
+			transform: rotate(-90deg) scale(75%);
+		}
+
+		30% {
+			transform: rotate(-180deg) scale(100%);
+		}
+
+		65% {
+			transform: rotate(-360deg) scale(0%);
+		}
+
+		100% {
+			transform: rotate(-720deg) scale(100%);
+		}
+	}
+
+	.d4 svg,
+	.d6 svg,
+	.d8 svg,
+	.d10 svg,
+	.d12 svg {
+		position: absolute;
+		max-width: 100px;
+		max-height: 100px;
+	}
+
+	.d20 svg {
+		position: absolute;
+		max-width: 200px;
+		max-height: 200px;
+	}
+
+	.d20 .a {
+		animation: rotationA 4s ease-in-out;
+	}
+
+	.d20 .a1 {
+		animation: rotationA 4s 0.1s ease-in-out;
+	}
+
+	.d20 .a2 {
+		animation: rotationA 4s 0.2s ease-in-out;
+	}
+
+	.d20 .a3 {
+		animation: rotationA 4s 0.3s ease-in-out;
+	}
+
+	.d20 .b {
+		animation: rotationB 4s 0.4s ease-in-out;
+	}
+
+	.d20 .b1 {
+		animation: rotationB 4s 0.5s ease-in-out;
+	}
+
+	.d20 .b2 {
+		animation: rotationB 4s 0.6s ease-in-out;
+	}
+
+	.d20 .b3 {
+		animation: rotationB 4s 0.7s ease-in-out;
+	}
+
+	.d20 .hex {
+		position: absolute;
+	}
+
+	.loadnum {
+		animation: loadNumber 1s ease-in-out;
+	}
+
+	.loadnum1 {
+		animation: loadNumber 1.5s ease-in-out;
+	}
+
+	.unloadnum {
+		animation: unloadNumber 1s ease-in-out;
+	}
+
+	@keyframes loadNumber {
+		from {
+			transform: scale(0%);
+		}
+
+		to {
+			transform: scale(100%);
+		}
+	}
+
+	@keyframes unloadNumber {
+		from {
+			transform: scale(100%);
+		}
+
+		to {
+			transform: scale(0%);
+		}
+	}
+
+	.randomnumber {
+		font-size: 30px;
+		transform: scale(100%);
+	}
+
+	.inputmod {
+		font-family: Georgia;
+		width: 73px;
+		text-align: center;
+	}
+
+	.tri-state-toggle {
+		display: flex;
+		justify-content: center;
+	}
+
+	.storage {
+		display: none;
+	}
+
+	.totalindicator {
+		font-size: 18px;
+		text-align: center;
+	}
+
+	.diceholder {
+		display: flex;
+		justify-content: space-evenly;
+	}
+
+	@keyframes d4animation {
+		from {
+			transform: rotate(0deg);
+		}
+
+		to {
+			transform: rotate(-360deg);
+		}
+	}
+
+	@keyframes d4xanimation {
+		from {
+			transform: rotateX(0deg);
+		}
+
+		to {
+			transform: rotateX(360deg);
+		}
+	}
+
+	@keyframes d4yanimation {
+		from {
+			transform: rotateY(0deg);
+		}
+
+		to {
+			transform: rotateY(360deg);
+		}
+	}
+
+	@keyframes d12animation {
+		from {
+			transform: rotate(0deg);
+		}
+
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	@keyframes d6animation {
+		from {
+			transform: rotate(0deg);
+		}
+
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	@keyframes d6yanimation {
+		from {
+			transform: rotateY(0deg);
+		}
+
+		to {
+			transform: rotateY(360deg);
+		}
+	}
+
+	@keyframes d8animation1 {
+		from {
+			transform: rotateZ(0deg) rotateY(0deg);
+		}
+
+		to {
+			transform: rotateZ(180deg) rotateY(180deg);
+		}
+	}
+
+	@keyframes d8animation2 {
+		from {
+			transform: rotateX(0deg) rotateY(0deg);
+		}
+
+		to {
+			transform: rotateX(180deg) rotateY(180deg);
+		}
+	}
+
+	@keyframes d8animation3 {
+		from {
+			transform: rotateZ(0deg) rotateX(0deg);
+		}
+
+		to {
+			transform: rotateZ(-180deg) rotateX(-180deg);
+		}
+	}
+
+	@keyframes d10animation {
+		from {
+			transform: rotateX(0deg);
+		}
+
+		to {
+			transform: rotateX(360deg);
+		}
+	}
+
+	@keyframes d10animation1 {
+		from {
+			transform: rotateY(0deg);
+		}
+
+		to {
+			transform: rotateY(360deg);
+		}
+	}
+
+	@keyframes d10panimation {
+		from {
+			transform: rotate(0deg);
+		}
+
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.d4x {
+		animation: d4xanimation 4s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d4y {
+		animation: d4yanimation 4s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d4a {
+		animation: d4animation 4s 0.4s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d4b {
+		animation: d4animation 4s 0.3s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d4c {
+		animation: d4animation 4s 0.2s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d4d {
+		animation: d4animation 4s 0.1s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d4e {
+		animation: d4animation 4s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d4ar {
+		animation: d4animation 4s 0.4s ease-in-out reverse;
+		transform-origin: center;
+	}
+
+	.d4br {
+		animation: d4animation 4s 0.3s ease-in-out reverse;
+		transform-origin: center;
+	}
+
+	.d4cr {
+		animation: d4animation 4s 0.2s ease-in-out reverse;
+		transform-origin: center;
+	}
+
+	.d4dr {
+		animation: d4animation 4s 0.1s ease-in-out reverse;
+		transform-origin: center;
+	}
+
+	.d4er {
+		animation: d4animation 4s ease-in-out reverse;
+		transform-origin: center;
+	}
+
+	.d6a {
+		animation: d6animation 4s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d6b {
+		animation: d6animation 4s 0.1s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d6c {
+		animation: d6animation 4s 0.2s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d6y1 {
+		animation: d6yanimation 4s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d6y2 {
+		animation: d6yanimation 4s 0.25s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d6y3 {
+		animation: d6yanimation 4s 0.5s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d6y4 {
+		animation: d6yanimation 4s 0.75s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d6y5 {
+		animation: d6yanimation 4s 1s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d6y6 {
+		animation: d6yanimation 4s 1.25s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d8a {
+		animation: d8animation1 4s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d8b {
+		animation: d8animation2 4s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d8c {
+		animation: d8animation3 4s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d8ar {
+		animation: d8animation1 4s ease-in-out reverse;
+		transform-origin: center;
+	}
+
+	.d8br {
+		animation: d8animation2 4s ease-in-out reverse;
+		transform-origin: center;
+	}
+
+	.d8cr {
+		animation: d8animation3 4s ease-in-out reverse;
+		transform-origin: center;
+	}
+
+	.d10a {
+		animation: d10animation 4s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d10a1 {
+		animation: d10animation1 4s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d10p {
+		animation: d10panimation 4s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d10p1 {
+		animation: d10panimation 4s ease-in-out reverse;
+		transform-origin: center;
+	}
+
+	.d12a {
+		animation: d12animation 4s ease-in-out;
+		transform-origin: center;
+	}
+
+	.d12b {
+		animation: d12animation 4s ease-in-out reverse;
+		transform-origin: center;
+	}
+
+	.d12aa {
+		animation: d12animation 4s ease-in-out;
+		transform-origin: 50px 20px;
+	}
+
+	.d12ab {
+		animation: d12animation 4s ease-in-out;
+		transform-origin: 21.468px 40.729px;
+	}
+
+	.d12ac {
+		animation: d12animation 4s ease-in-out;
+		transform-origin: 32.366px 74.271px;
+	}
+
+	.d12ad {
+		animation: d12animation 4s ease-in-out;
+		transform-origin: 67.634px 74.271px;
+	}
+
+	.d12ae {
+		animation: d12animation 4s ease-in-out;
+		transform-origin: 78.532px 40.729px;
+	}
+
+	.dieinput {
+		width: 32px;
+		font-family: Georgia;
+	}
+
+	.dieinputcontainer {
+		text-align: center;
+	}
+
+	.dicerolls {
+		width: 100px;
+		overflow: visible;
+		text-align: center;
+	}
+
+	.dicetotals {
+		width: 100px;
+		text-align: center;
+	}
+
+	.finalinput {
+		position: absolute;
+		display: flex;
+		width: 600px;
+		top: 280px;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.helpfulinfo {
+		display: flex;
+		justify-content: center;
+		width: 590px;
+		transform: translate(0, -1rem);
+		font-size: 15px;
+	}
+
+	.helpfulinfo>* {
+		flex: 1;
+		padding: 2.5px;
+	}
+</style>
+</head>
+
+<body>
+	<div class="tab">
+		<button class="tablinks" onclick="pageTurner(event, 'Saving Throw')" id="defaultOpen">Saving Throw</button>
+		<button class="tablinks" onclick="pageTurner(event, 'Skill Check')">Skill Check</button>
+		<button class="tablinks" onclick="pageTurner(event, 'Check Builder')">Check Builder</button>
+		<button class="tablinks" onclick="pageTurner(event, 'Misc Dice')">Misc. Dice</button>
+		<button class="tablinks" onclick="pageTurner(event, 'Help Info')">Help</button>
+	</div>
+	<!--Saving Throws-->
+	<div id="Saving Throw" class="tabcontent">
+		<div class="savingthrow">
+			<div style="position: relative; float:left;">
+				<button id="bstrSave" class="stbutton">Strength</button><button id="bintSave"
+					class="stbutton">Intelligence</button><br>
+				<button id="bdexSave" class="stbutton">Dexterity</button><button id="bwisSave"
+					class="stbutton">Wisdom</button><br>
+				<button id="bconSave" class="stbutton">Constitution</button><button id="bchaSave"
+					class="stbutton">Charisma</button><br>
+				<label for="inputmodifierst">Other Modifier:</label>
+				<input type="number" value="0" id="inputmodifierst" class="inputmod"
+					onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 45">
+				<div class="tri-state-toggle">
+					<input id="disst" type="radio" name="dadvst" value="dis">
+					<label for="disst">Dis</label>
+					<input id="nast" type="radio" name="dadvst" checked value="na">
+					<label for="nast">Normal</label>
+					<input id="advst" type="radio" name="dadvst" value="adv">
+					<label for="advst">Adv</label>
+				</div>
+				<div id="totalst" class="totalindicator">Total: 0</div>
+			</div>
+			<div class="d20" id="d20st">
+				<svg id="hex" width="200" height="200">
+					<polygon points="100,10 22.058,55 22.058,145 100,190 177.942,145 177.942,55" fill="none"
+						stroke="black" />
+				</svg>
+				<svg id="a" width="200" height="200">
+					<polygon points="22.058,55 100,190 177.942,55" fill="none" stroke="black" />
+				</svg>
+				<svg id="a1" width="200" height="200">
+					<polygon points="22.058,55 100,190 177.942,55" fill="none" stroke="black" />
+				</svg>
+				<svg id="a2" width="200" height="200">
+					<polygon points="22.058,55 100,190 177.942,55" fill="none" stroke="black" />
+				</svg>
+				<svg id="a3" width="200" height="200">
+					<polygon points="22.058,55 100,190 177.942,55" fill="none" stroke="black" />
+				</svg>
+				<svg id="b" width="200" height="200">
+					<polygon points="100,10 22.058,145 177.942,145" fill="none" stroke="black" />
+				</svg>
+				<svg id="b1" width="200" height="200">
+					<polygon points="100,10 22.058,145 177.942,145" fill="none" stroke="black" />
+				</svg>
+				<svg id="b2" width="200" height="200">
+					<polygon points="100,10 22.058,145 177.942,145" fill="none" stroke="black" />
+				</svg>
+				<svg id="b3" width="200" height="200">
+					<polygon points="100,10 22.058,145 177.942,145" fill="none" stroke="black" />
+				</svg>
+				<svg width="200" height="200" id="rnholderst" style="visibility: hidden;" class="randomnumber">
+					<text x="100" y="107.5" text-anchor="middle" id="randomnumberst"></text>
+				</svg>
+			</div>
+		</div>
+	</div>
+
+	<!--Skill Checks-->
+	<div id="Skill Check" class="tabcontent">
+		<div class="skillcheck">
+			<div style="position: relative; float:left;">
+				<select id="skill-checks" name="skill-checks">
+					<option value="acrobatics">Acrobatics</option>
+					<option value="animal">Animal Handling</option>
+					<option value="arcana">Arcana</option>
+					<option value="athletics">Athletics</option>
+					<option value="deception">Deception</option>
+					<option value="history">History</option>
+					<option value="insight">Insight</option>
+					<option value="intimidation">Intimidation</option>
+					<option value="investigation">Investigation</option>
+					<option value="medicine">Medicine</option>
+					<option value="nature">Nature</option>
+					<option value="perception">Perception</option>
+					<option value="performance">Performance</option>
+					<option value="persuasion">Persuasion</option>
+					<option value="religion">Religion</option>
+					<option value="sleight">Sleight of Hand</option>
+					<option value="stealth">Stealth</option>
+					<option value="survival">Survival</option>
+				</select>
+				<button style="font-family: Georgia; width: 66px" class="scbutton">Roll</button><br>
+				<label for="inputmodifiersc">Other Modifier:</label>
+				<input type="number" value="0" id="inputmodifiersc" class="inputmod"
+					onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 45">
+				<div class="tri-state-toggle">
+					<input id="dissc" type="radio" name="dadvsc" value="dis">
+					<label for="dissc">Dis</label>
+					<input id="nasc" type="radio" name="dadvsc" checked value="na">
+					<label for="nasc">Normal</label>
+					<input id="advsc" type="radio" name="dadvsc" value="adv">
+					<label for="advsc">Adv</label>
+				</div>
+				<div id="totalsc" class="totalindicator">Total: 0</div>
+			</div>
+			<div class="d20" id="d20sc">
+				<svg id="hex" width="200" height="200">
+					<polygon points="100,10 22.058,55 22.058,145 100,190 177.942,145 177.942,55" fill="none"
+						stroke="black" />
+				</svg>
+				<svg id="a" width="200" height="200">
+					<polygon points="22.058,55 100,190 177.942,55" fill="none" stroke="black" />
+				</svg>
+				<svg id="a1" width="200" height="200">
+					<polygon points="22.058,55 100,190 177.942,55" fill="none" stroke="black" />
+				</svg>
+				<svg id="a2" width="200" height="200">
+					<polygon points="22.058,55 100,190 177.942,55" fill="none" stroke="black" />
+				</svg>
+				<svg id="a3" width="200" height="200">
+					<polygon points="22.058,55 100,190 177.942,55" fill="none" stroke="black" />
+				</svg>
+				<svg id="b" width="200" height="200">
+					<polygon points="100,10 22.058,145 177.942,145" fill="none" stroke="black" />
+				</svg>
+				<svg id="b1" width="200" height="200">
+					<polygon points="100,10 22.058,145 177.942,145" fill="none" stroke="black" />
+				</svg>
+				<svg id="b2" width="200" height="200">
+					<polygon points="100,10 22.058,145 177.942,145" fill="none" stroke="black" />
+				</svg>
+				<svg id="b3" width="200" height="200">
+					<polygon points="100,10 22.058,145 177.942,145" fill="none" stroke="black" />
+				</svg>
+				<svg width="200" height="200" id="rnholdersc" style="visibility: hidden;" class="randomnumber">
+					<text x="100" y="107.5" text-anchor="middle" id="randomnumbersc"></text>
+				</svg>
+			</div>
+		</div>
+	</div>
+
+	<!--Check Builder-->
+	<div id="Check Builder" class="tabcontent">
+		<div class="checkbuilder">
+			<div style="position: relative; float:left;">
+				<button id="bstrCheck" class="cbbutton">Strength</button><button id="bintCheck"
+					class="cbbutton">Intelligence</button><br>
+				<button id="bdexCheck" class="cbbutton">Dexterity</button><button id="bwisCheck"
+					class="cbbutton">Wisdom</button><br>
+				<button id="bconCheck" class="cbbutton">Constitution</button><button id="bchaCheck"
+					class="cbbutton">Charisma</button><br>
+				<button id="binit" class="widebutton">Initiative</button><br>
+				<input id="addprof" type="checkbox">
+				<label for="addprof" style="font-size: 15px;">Add Proficiency Bonus</label><br>
+				<label for="inputmodifiercb">Other Modifier:</label>
+				<input type="number" value="0" id="inputmodifiercb" class="inputmod"
+					onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 45">
+				<div class="tri-state-toggle">
+					<input id="discb" type="radio" name="dadvcb" value="dis">
+					<label for="discb">Dis</label>
+					<input id="nacb" type="radio" name="dadvcb" checked value="na">
+					<label for="nacb">Normal</label>
+					<input id="advcb" type="radio" name="dadvcb" value="adv">
+					<label for="advcb">Adv</label>
+				</div>
+				<div id="totalcb" class="totalindicator">Total: 0</div>
+			</div>
+			<div class="d20" id="d20cb">
+				<svg id="hex" width="200" height="200">
+					<polygon points="100,10 22.058,55 22.058,145 100,190 177.942,145 177.942,55" fill="none"
+						stroke="black" />
+				</svg>
+				<svg id="a" width="200" height="200">
+					<polygon points="22.058,55 100,190 177.942,55" fill="none" stroke="black" />
+				</svg>
+				<svg id="a1" width="200" height="200">
+					<polygon points="22.058,55 100,190 177.942,55" fill="none" stroke="black" />
+				</svg>
+				<svg id="a2" width="200" height="200">
+					<polygon points="22.058,55 100,190 177.942,55" fill="none" stroke="black" />
+				</svg>
+				<svg id="a3" width="200" height="200">
+					<polygon points="22.058,55 100,190 177.942,55" fill="none" stroke="black" />
+				</svg>
+				<svg id="b" width="200" height="200">
+					<polygon points="100,10 22.058,145 177.942,145" fill="none" stroke="black" />
+				</svg>
+				<svg id="b1" width="200" height="200">
+					<polygon points="100,10 22.058,145 177.942,145" fill="none" stroke="black" />
+				</svg>
+				<svg id="b2" width="200" height="200">
+					<polygon points="100,10 22.058,145 177.942,145" fill="none" stroke="black" />
+				</svg>
+				<svg id="b3" width="200" height="200">
+					<polygon points="100,10 22.058,145 177.942,145" fill="none" stroke="black" />
+				</svg>
+				<svg width="200" height="200" id="rnholdercb" style="visibility: hidden;" class="randomnumber">
+					<text x="100" y="107.5" text-anchor="middle" id="randomnumbercb"></text>
+				</svg>
+			</div>
+		</div>
+	</div>
+
+	<!--Misc Dice-->
+	<div id="Misc Dice" class="tabcontent">
+		<div class="finalinput">
+			<div>
+				<span>Total Modifier:</span>
+				<input type="number" value="0" id="miscmodifier" class="dieinput"
+					onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 45">
+				<button style="font-family: Georgia;" onclick="resetMiscDice();">Reset</button>
+			</div>
+			<div>
+				<button style="font-family: Georgia;" onclick="multiroller();">Roll</button>
+				<span id="grandtotal">Total: 0</span>
+			</div>
+		</div>
+		<div class="diceholder" id="diceholder">
+			<div id="d4container">
+				<div id="d4" class="d4 die">
+					<svg width="100" height="100">
+						<polygon id="d4x" points="50,5 5,75 50,95 95,75" fill="none" stroke="black" />
+						<polygon id="d4y" points="50,5 5,75 50,95 95,75" fill="none" stroke="black" />
+					</svg>
+					<svg width="100" height="100">
+						<polyline id="d4a" points="50,95 50,70" stroke="black" />
+						<polyline id="d4b" points="50,90 50,70" stroke="black" />
+						<polyline id="d4c" points="50,85 50,70" stroke="black" />
+						<polyline id="d4d" points="50,80 50,70" stroke="black" />
+						<polyline id="d4e" points="50,75 50,70" stroke="black" />
+						<polyline id="d4a" points="50,30 50,5" stroke="black" />
+						<polyline id="d4b" points="50,30 50,10" stroke="black" />
+						<polyline id="d4c" points="50,30 50,15" stroke="black" />
+						<polyline id="d4d" points="50,30 50,20" stroke="black" />
+						<polyline id="d4e" points="50,30 50,25" stroke="black" />
+						<polyline id="d4ar" points="50,95 50,70" stroke="black" />
+						<polyline id="d4br" points="50,90 50,70" stroke="black" />
+						<polyline id="d4cr" points="50,85 50,70" stroke="black" />
+						<polyline id="d4dr" points="50,80 50,70" stroke="black" />
+						<polyline id="d4er" points="50,75 50,70" stroke="black" />
+						<polyline id="d4ar" points="50,30 50,5" stroke="black" />
+						<polyline id="d4br" points="50,30 50,10" stroke="black" />
+						<polyline id="d4cr" points="50,30 50,15" stroke="black" />
+						<polyline id="d4dr" points="50,30 50,20" stroke="black" />
+						<polyline id="d4er" points="50,30 50,25" stroke="black" />
+						<circle id="d4circle" cx="50" cy="50" r="20" fill="none" stroke="black" />
+					</svg>
+					<svg width="100" height="100" id="rnholderd4" style="visibility: hidden;" class="randomnumber">
+						<text x="50" y="57.5" text-anchor="middle" id="randomnumberd4"></text>
+					</svg>
+				</div>
+				<div class="dieinputcontainer">
+					<input type="number" value="0" id="numd4" class="dieinput" min="0"
+						onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+					<label for="numd4">d4</label>
+				</div>
+				<div id="d4rolls" class="dicerolls">Rolled: </div>
+				<div id="d4total" class="dicetotals">Total: </div>
+			</div>
+			<div id="d6container">
+				<div id="d6" class="d6 die">
+					<svg width="100" height="100">
+						<polygon id="d6y1" points="50,5 10,25 10,75 50,95 90,75 90,25" fill="none" stroke="black" />
+						<polygon id="d6y2" points="50,5 10,25 10,75 50,95 90,75 90,25" fill="none" stroke="black" />
+						<polygon id="d6y3" points="50,5 10,25 10,75 50,95 90,75 90,25" fill="none" stroke="black" />
+						<polygon id="d6y4" points="50,5 10,25 10,75 50,95 90,75 90,25" fill="none" stroke="black" />
+						<polygon id="d6y5" points="50,5 10,25 10,75 50,95 90,75 90,25" fill="none" stroke="black" />
+						<polygon id="d6y6" points="50,5 10,25 10,75 50,95 90,75 90,25" fill="none" stroke="black" />
+					</svg>
+					<svg width="100" height="100">
+						<polyline id="d6a" points="10,25 34.564,37.282" stroke="black" />
+						<polyline id="d6a" points="90,25 65.463,37.282" stroke="black" />
+						<polyline id="d6a" points="50,95 50,70" stroke="black" />
+						<polyline id="d6b" points="10,25 34.564,37.282" stroke="black" />
+						<polyline id="d6b" points="90,25 65.463,37.282" stroke="black" />
+						<polyline id="d6b" points="50,95 50,70" stroke="black" />
+						<polyline id="d6c" points="10,25 34.564,37.282" stroke="black" />
+						<polyline id="d6c" points="90,25 65.463,37.282" stroke="black" />
+						<polyline id="d6c" points="50,95 50,70" stroke="black" />
+						<circle id="d6circle" cx="50" cy="50" r="20" fill="none" stroke="black" />
+					</svg>
+					<svg width="100" height="100" id="rnholderd6" style="visibility: hidden;" class="randomnumber">
+						<text x="50" y="57.5" text-anchor="middle" id="randomnumberd6"></text>
+					</svg>
+				</div>
+				<div class="dieinputcontainer">
+					<input type="number" value="0" id="numd6" class="dieinput" min="0"
+						onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+					<label for="numd6">d6</label>
+				</div>
+				<div id="d6rolls" class="dicerolls">Rolled: </div>
+				<div id="d6total" class="dicetotals">Total: </div>
+			</div>
+			<div id="d8container">
+				<div id="d8" class="d8 die">
+					<svg width="100" height="100">
+						<polygon id="d8a" points="50,5 20,50 50,95 80,50" fill="none" stroke="black" />
+						<polygon id="d8b" points="50,5 20,50 50,95 80,50" fill="none" stroke="black" />
+						<polygon id="d8c" points="50,5 20,50 50,95 80,50" fill="none" stroke="black" />
+						<polygon id="d8ar" points="50,5 20,50 50,95 80,50" fill="none" stroke="black" />
+						<polygon id="d8br" points="50,5 20,50 50,95 80,50" fill="none" stroke="black" />
+						<polygon id="d8cr" points="50,5 20,50 50,95 80,50" fill="none" stroke="black" />
+					</svg>
+					<svg width="100" height="100">
+						<polyline id="d8a" points="20,50 30,50" stroke="black" />
+						<polyline id="d8a" points="80,50 70,50" stroke="black" />
+						<polyline id="d8b" points="20,50 30,50" stroke="black" />
+						<polyline id="d8b" points="80,50 70,50" stroke="black" />
+						<polyline id="d8c" points="20,50 30,50" stroke="black" />
+						<polyline id="d8c" points="80,50 70,50" stroke="black" />
+						<polyline id="d8ar" points="20,50 30,50" stroke="black" />
+						<polyline id="d8ar" points="80,50 70,50" stroke="black" />
+						<polyline id="d8br" points="20,50 30,50" stroke="black" />
+						<polyline id="d8br" points="80,50 70,50" stroke="black" />
+						<polyline id="d8cr" points="20,50 30,50" stroke="black" />
+						<polyline id="d8cr" points="80,50 70,50" stroke="black" />
+						<circle id="d8circle" cx="50" cy="50" r="20" fill="none" stroke="black" />
+					</svg>
+					<svg width="100" height="100" id="rnholderd8" style="visibility: hidden;" class="randomnumber">
+						<text x="50" y="57.5" text-anchor="middle" id="randomnumberd8"></text>
+					</svg>
+				</div>
+				<div class="dieinputcontainer">
+					<input type="number" value="0" id="numd8" class="dieinput" min="0"
+						onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+					<label for="numd8">d8</label>
+				</div>
+				<div id="d8rolls" class="dicerolls">Rolled: </div>
+				<div id="d8total" class="dicetotals">Total: </div>
+			</div>
+			<div id="d10container">
+				<div id="d10" class="d10 die">
+					<svg width="100" height="100">
+						<polygon id="d10p" points="50,5 10,50 50,95 90,50" fill="none" stroke="black" />
+						<polygon id="d10p1" points="50,5 10,50 50,95 90,50" fill="none" stroke="black" />
+					</svg>
+					<svg width="100" height="100">
+						<polyline id="d10a" points="10,50 25,40 30.744,44.595" stroke="black" fill="none" />
+						<polyline id="d10a" points="90,50 75,40 69.256,44.595" stroke="black" fill="none" />
+						<polyline id="d10a" points="50,5 25,40" stroke="black" />
+						<polyline id="d10a" points="50,5 75,40" stroke="black" />
+						<polyline id="d10a" points="50,95 50,70" stroke="black" />
+						<polyline id="d10a1" points="10,50 25,40 30.744,44.595" stroke="black" fill="none" />
+						<polyline id="d10a1" points="90,50 75,40 69.256,44.595" stroke="black" fill="none" />
+						<polyline id="d10a1" points="50,5 25,40" stroke="black" />
+						<polyline id="d10a1" points="50,5 75,40" stroke="black" />
+						<polyline id="d10a1" points="50,95 50,70" stroke="black" />
+						<circle id="d10circle" cx="50" cy="50" r="20" fill="none" stroke="black" />
+					</svg>
+					<svg width="100" height="100" id="rnholderd10" style="visibility: hidden;" class="randomnumber">
+						<text x="50" y="57.5" text-anchor="middle" id="randomnumberd10"></text>
+					</svg>
+				</div>
+				<div class="dieinputcontainer">
+					<input type="number" value="0" id="numd10" class="dieinput" min="0"
+						onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+					<label for="numd10">d10</label>
+				</div>
+				<div id="d10rolls" class="dicerolls">Rolled: </div>
+				<div id="d10total" class="dicetotals">Total: </div>
+			</div>
+			<div id="d12container">
+				<div id="d12" class="d12 die">
+					<svg width="100" height="100">
+						<polygon id="d12b"
+							points="50,5 23.55,13.594 7.202,36.094 7.202,63.906 23.55,86.406 50,95 76.45,86.406 92.789,63.906 92.789,36.094 76.45,13.594"
+							fill="none" stroke="black" />
+					</svg>
+					<svg id="d12a" width="100" height="100">
+						<polyline id="d12aa" points="50,5 50,20 21.468,40.729" stroke="black" fill="none" />
+						<polyline id="d12ab" points="7.202,36.094 21.468,40.729 32.366,74.271" stroke="black"
+							fill="none" />
+						<polyline id="d12ac" points="23.55,86.406 32.366,74.271 67.634,74.271" stroke="black"
+							fill="none" />
+						<polyline id="d12ad" points="76.45,86.406 67.634,74.271 78.532,40.729" stroke="black"
+							fill="none" />
+						<polyline id="d12ae" points="92.789,36.094 78.532,40.729 50,20" stroke="black" fill="none" />
+						<circle id="d12circle" cx="50" cy="50" r="20" fill="none" stroke="black" />
+					</svg>
+					<svg width="100" height="100" id="rnholderd12" style="visibility: hidden;" class="randomnumber">
+						<text x="50" y="57.5" text-anchor="middle" id="randomnumberd12"></text>
+					</svg>
+				</div>
+				<div class="dieinputcontainer">
+					<input type="number" value="0" id="numd12" class="dieinput" min="0"
+						onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+					<label for="numd12">d12</label>
+				</div>
+				<div id="d12rolls" class="dicerolls">Rolled: </div>
+				<div id="d12total" class="dicetotals">Total: </div>
+			</div>
+		</div>
+	</div>
+
+	<!--Help Info-->
+	<div id="Help Info" class="tabcontent">
+		<div class="helpfulinfo">
+			<div>
+				<p><strong>Checks/Saves with Stats: </strong>The stats from your character sheet are automatically
+					imported from your character sheets.</p>
+				<p><strong>Dice Graphics: </strong>You can click a die to have it roll based on the settings you set
+					beforehand (ie. Advantage/ Disadvantage and a modifier). If you do this for any dice in the Misc.
+					Dice tab, it will
+					give you an output without changing the total at the bottom.</p>
+				<p><strong>Other Modifier: </strong>Use this to input a number that will modify the result of the dice
+					roll on top of your existing modifier.</p>
+			</div>
+			<div>
+				<p><strong>Saving Throw: </strong>Use the buttons to roll a saving throw for a particular ability.</p>
+				<p><strong>Skill Check: </strong>Use the dropdown menu to select a particular skill and click the d20 or
+					Roll buton to make the roll.</p>
+				<p><strong>Check Builder: </strong>Use the options to create an ability check (ex. Dexterity with
+					proficiency).</p>
+				<p><strong>Misc. Dice: </strong>Use this to roll any combination of each die type. Modifiers must be
+					manually inputted.</p>
+			</div>
+		</div>
+	</div>
+</body>
+<script>
+	/** Returns the value of the function called
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
+	*/
+	function runGoogleWithReturn(f, arr) {
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
+
+	}
+	/** Simply calls a function with no return value
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
+	*/
+	function runGoogle(f, arr) {
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
+
+	}
+	/** @param {string} n */ let ID = n => document.getElementById(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qry = (n, el) => (el != undefined) ? el.querySelector(n) : document.querySelector(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qryA = (n, el) => (el != undefined) ? el.querySelectorAll(n) : document.querySelectorAll(n)
+
+	qryA('input').forEach(x => x.autocomplete = 'off') // disable autocomplete for inputs
+	const grandTotal = { totals: [0], get final() { return this.totals.reduce((t, c) => t + c, 0) } }
+	// ^create grandTotal object for misc dice
+	const dice = Array.from(qryA('#diceholder div div.die')), // create an array for each die type
+		d20s = Array.from(qryA('.d20'))
+	dice.forEach(die => die.onclick = () => { runSubAnimation(die, true) }) // add an onclick function for each die
+	const pages = ["Saving Throw", "Skill Check", "Check Builder", "Misc Dice"] // array containing the page names for each type
+	var stats = {
+		strSave: 0, dexSave: 0, conSave: 0, intSave: 0, wisSave: 0, chaSave: 0,
+		acrobaticsCheck: 0, animalCheck: 0, arcanaCheck: 0, athleticsCheck: 0,
+		deceptionCheck: 0, historyCheck: 0, insightCheck: 0, intimidationCheck: 0,
+		investigationCheck: 0, medicineCheck: 0, natureCheck: 0, perceptionCheck: 0,
+		performanceCheck: 0, persuasionCheck: 0, religionCheck: 0, sleightCheck: 0,
+		stealthCheck: 0, survivalCheck: 0, strCheck: 0, throw: 0, init: 0,
+		dexCheck: 0, conCheck: 0, intCheck: 0, wisCheck: 0, chaCheck: 0, prof: 0
+	}
+	var rolling = false
+
+	document.addEventListener('DOMContentLoaded', async () => { // on DOM Content Loaded
+		try { await (async () => stats = await runGoogleWithReturn('getStats'))() } catch { } // try to get the stats from the sheet
+		pages.forEach(p => { // loop through each page
+			/** @type {"st"|"sc"|"cb"|"md"} */ var pg
+			switch (p) {
+				case "Saving Throw":
+					pg = 'st'
+					break
+				case "Skill Check":
+					pg = 'sc'
+					break
+				case "Check Builder":
+					pg = 'cb'
+					break
+				case "Misc Dice":
+					pg = 'md'
+					break
+			}
+			const d20 = ID(`d20${pg}`)
+			const arr = [d20, ...qryA(`.${pg}button, .widebutton`)]
+			if (pg != 'md') arr.forEach(n => clicker(n, pg, d20))
+		})
+		qryA('.d20 .randomnumber').forEach(holder => holder.dataset.initialclass = holder.className.baseVal)
+
+		// Get the element with id="defaultOpen" and click on it
+		ID("defaultOpen").click()
+	})
+	const newObj = {}
+	qryA('.storage div span').forEach(x => newObj[x.id] = Number(x.innerHTML))
+	console.log(JSON.stringify(newObj))
+
+	/** @param {Event} evt @param {string} page */
+	function pageTurner(evt, page) {
+		const curPage = qry('.tabcontent:not([style*="display:none"],[style*="display: none"])')
+		switch (curPage.id) {
+			case 'Saving Throw':
+			case 'Skill Check':
+			case 'Check Builder':
+				qry('.totalindicator', curPage).innerHTML = 'Total: 0'
+				qry('.randomnumber text', curPage).innerHTML = ''
+				break
+			case 'Misc Dice':
+				ID('miscmodifier').value = 0
+				ID('grandtotal').innerHTML = 'Total: 0'
+				Array.from(ID('diceholder').children).forEach(child => {
+					qry('.die svg text', child).innerHTML = '' // clear number in svg circle
+					qry('.dieinputcontainer input', child).value = 0 // reset number of dice to 0
+					qry('.dicerolls', child).innerHTML = 'Rolled:'
+					qry('.dicetotals', child).innerHTML = 'Total:'
+				})
+				dice.forEach(die => {
+					var els = Array.from(qryA('svg polygon,polyline', die))
+					if (die.id == 'd12') els.push(ID('d12a'))
+					els.forEach(x => x.classList.remove(x.id))
+				})
+				break
+		}
+		const tabcontent = document.getElementsByClassName("tabcontent")
+		for (let x of tabcontent) x.style.display = "none"
+		const tablinks = document.getElementsByClassName("tablinks")
+		for (let x of tablinks) x.classList.toggle('active', false)
+		ID(page).style.display = "block"
+		evt.currentTarget.classList.toggle('active', true)
+		const d20id = page.split(' ').map(x => x[0]).join('')
+		d20s.forEach(d20 => {
+			const holder = ID(`rnholder${d20.id.slice(-2)}`), classes = [...Array.from(holder.classList.values())]
+			holder.classList.remove(...classes)
+			holder.classList.add(holder.dataset.initialclass)
+			Array.from(d20.children).forEach(child => child.classList.toggle(child.id, false))
+		})
+		dice
+		rolling = false
+	}
+
+	/** @param {HTMLElement|Element} n @param {"st"|"sc"|"cb"} pg @param {HTMLElement|Element} d20 */
+	function clicker(n, pg, d20) {
+		if (n != null) n.onclick = () => runAnimation()
+		function runAnimation() {
+			if (rolling) return // guard clause that prevents rolling while a roll is taking place
+			rolling = true
+			const holder = ID(`rnholder${pg}`), // this is the random number holder
+				checkSave = (['st', 'cb'].some(x => x == pg) && n.id.slice(0, 1) != 'd'
+				) ? n.id.slice(1) : (pg == 'sc' && n.id != d20.id) ? `${ID('skill-checks').value}Check` : 'throw',
+				modifier = stats[checkSave],
+				dadv = qry(`input[name="dadv${pg}"]:checked`).value // advantage/disadvantage/normal roll
+			console.log(checkSave, modifier)
+			holder.classList.add('unloadnum')
+			setTimeout(() => {
+				ID(`randomnumber${pg}`).innerHTML = ''
+				holder.style.visibility = 'hidden'
+				holder.classList.remove('unloadnum')
+			}, 975)
+			var promiseResolve
+			const proms = [...Array.from(d20.children).map(y => new Promise((res, rej) => {
+				const clss = y.id
+				const rndm1 = Math.floor(Math.random() * 20) + 1, rndm2 = Math.floor(Math.random() * 20) + 1,
+					rndm = (dadv == 'adv') ? Math.max(rndm1, rndm2) : (dadv == 'dis') ? Math.min(rndm1, rndm2) :
+						Math.floor(Math.random() * 20) + 1,
+					rvalue = ID(`randomnumber${pg}`)
+				if (clss == 'hex' || clss.includes('rnholder')) setTimeout(() => res(rndm), 4050)
+				else y.classList.add(clss)
+				y.onanimationend = () => {
+					y.classList.remove(clss)
+					switch (dadv) {
+						case 'na':
+							rvalue.innerHTML = rndm
+							break
+						case 'dis':
+						case 'adv':
+							rvalue.innerHTML = `${rndm1}/${rndm2}`
+							break
+					}
+					res(rndm)
+				}
+			})), new Promise((res) => promiseResolve = res)]
+			Promise.race(proms).then(a => {
+				holder.classList.add('loadnum')
+				holder.style.visibility = 'visible'
+				holder.onanimationend = () => promiseResolve()
+			})
+			Promise.all(proms).then(arr => {
+				holder.classList.remove('loadnum')
+				const rndm = arr[arr.length - 3],
+					total = Number(ID(`inputmodifier${pg}`).value),
+					prof = Number(ID('prof').innerHTML),
+					/** @type {boolean} */ addProf = pg == 'cb' && ID('addprof').checked,
+					abmod = `${rndm}${(modifier > 0) ? '+' : ''}${(modifier != 0) ? modifier : ''}${addProf ? `+${prof}` : ''}` +
+						`${(total > 0) ? '+' : ''}${(total != 0) ? total : ''}`
+				ID(`total${pg}`).innerHTML = `Total: ${abmod}` + (['-', '+'].some(x => abmod.includes(x)) ?
+					`=${total + rndm + modifier + (addProf ? prof : 0)}` : '')
+				rolling = false
+			})
+		}
+	}
+
+	/** @param {HTMLElement|Element} die */
+	function runSubAnimation(die, click = false) {
+		const dx = parseInt(die.id.slice(1))
+		const holder = ID(`rnholderd${dx}`)
+		holder.classList.add('unloadnum')
+		setTimeout(() => {
+			ID(`randomnumberd${dx}`).innerHTML = ''
+			holder.style.visibility = 'hidden'
+			holder.classList.remove('unloadnum')
+			ID(`d${dx}rolls`).innerHTML = 'Rolled: '
+			ID(`d${dx}total`).innerHTML = 'Total: '
+		}, 975)
+		var els = Array.from(qryA('svg polygon,polyline', die))
+		if (die.id == 'd12') els.push(ID('d12a'))
+		const bool = [4, 6].some(x => dx == x)
+		els.forEach(poly => {
+			poly.classList.add(poly.id)
+			poly.onanimationend = () => {
+				poly.classList.remove(poly.id)
+				const rndm = Math.floor(Math.random() * dx) + 1
+				const rvalue = ID(`randomnumberd${dx}`)
+				rvalue.innerHTML = rndm
+				holder.classList.add(`loadnum${dx == 6 ? '1' : ''}`)
+				const interval = !bool ? setInterval(() => { rvalue.innerHTML = Math.floor(Math.random() * dx) + 1; }, 200) : 0
+				holder.style.visibility = 'visible'
+				holder.onanimationend = () => {
+					holder.classList.remove(`loadnum${dx == 6 ? '1' : ''}`)
+					if (bool) update()
+				}
+				if (interval) setTimeout(() => {
+					clearInterval(interval)
+					update()
+				}, 1000)
+			}
+		})
+		function update() {
+			const numdice = ID(`numd${dx}`).value,
+				rollsElem = ID(`d${dx}rolls`),
+				totalElem = ID(`d${dx}total`),
+				rnum = Number(ID(`randomnumberd${dx}`).innerHTML),
+				rolls = [rnum]
+			if (numdice == 1 && !click) {
+				rollsElem.innerHTML = `Rolled: ${rnum}`
+				totalElem.innerHTML = `Total: ${rnum}`
+			} else if (numdice > 1 && !click) {
+				for (let i = 1; i < numdice; i++) rolls.push(Math.floor(Math.random() * dx) + 1)
+				const total = rolls.reduce((tot, cur) => tot + cur, 0)
+				rollsElem.innerHTML = `Rolled: ${rolls.join(', ')}`
+				totalElem.innerHTML = `Total: ${total}`
+			}
+		}
+	}
+
+	function multiroller() {
+		grandTotal.totals = [0]
+		const dx = [4, 6, 8, 10, 12]
+		const /** @type {HTMLElement[]} */ dns = [], /** @type {HTMLElement[]} */ other = []
+		for (let x of dx) (Number(ID(`numd${x}`).value) > 0 ? dns : other).push(ID(`d${x}`))
+		if (other.length) resetMiscDice(other.map(x => Number(x.id.slice(1))), false)
+		if (dns.length > 0) {
+			dns.forEach(f => runSubAnimation(f))
+			setTimeout(() => {
+				for (let j of dx) grandTotal.totals.push(Number(ID(`d${j}total`).innerHTML.slice(7)))
+				const miscMod = Number(ID('miscmodifier').value),
+					grand = ID('grandtotal')
+				if (dns.length > 1) {
+					grand.innerHTML = `Total: ${grandTotal.totals.filter(x => x).join('+')}` +
+						(miscMod != 0 ? `${miscMod > 0 ? '+' : ''}${miscMod}` : '') +
+						`=${grandTotal.final + miscMod}`
+				} else grand.innerHTML = `Total: ${grandTotal.final}`
+			}, 6000)
+		}
+	}
+
+	function resetMiscDice(arr = [4, 6, 8, 10, 12], io = true) {
+		arr.forEach(d => {
+			ID(`numd${d}`).value = 0
+			ID(`d${d}rolls`).innerHTML = 'Rolled: 0'
+			ID(`d${d}total`).innerHTML = 'Total: 0'
+			reset(ID(`d${d}`))
+		})
+		if (io) {
+			ID('miscmodifier').value = 0
+			ID('grandtotal').innerHTML = 'Total: 0'
+		}
+	}
+
+	/** @param {HTMLElement} other */
+	function reset(other) {
+		const dx = Number(other.id.slice(1)),
+			holder = ID(`rnholderd${dx}`)
+		holder.classList.add('unloadnum')
+		holder.onanimationend = () => {
+			ID(`randomnumberd${dx}`).innerHTML = ''
+			holder.style.visibility = 'hidden'
+			holder.classList.remove('unloadnum')
+			holder.onanimationend = () => { }
+		}
+	}
+
+</script>
+
+</html>

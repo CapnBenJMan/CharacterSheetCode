@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<style>
+	.container {
+		background-color: white;
+		padding: 15px;
+		height: 200px;
+		width: 300px;
+		font-family: Georgia;
+		color: black;
+		font-size: 25px;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		-ms-transform: translate(-50%, -50%);
+		transform: translate(-50%, -50%);
+		text-align: center;
+	}
+
+	.option {
+		border-radius: 1em;
+		font-family: Georgia;
+		font-size: 20px;
+	}
+
+	.option:hover {
+		filter: brightness(120%);
+	}
+
+	.option:active {
+		filter: brightness(80%);
+	}
+
+	.loader {
+		border: 5px solid #f3f3f3;
+		border-radius: 50%;
+		border-top: 5px solid #3498db;
+		border-bottom: 5px solid #3498db;
+		position: absolute;
+		top: calc(50% - 30px);
+		left: calc(50% - 30px);
+		width: 50px;
+		height: 50px;
+		z-index: 10;
+		animation: spin 2s linear infinite;
+	}
+
+	@keyframes spin {
+		0% {
+			transform: rotate(0deg);
+		}
+
+		100% {
+			transform: rotate(360deg);
+		}
+	}
+</style>
+
+<body>
+	<div id="loader" class="loader" style="visibility: hidden;"></div>
+	<div id="container" class="container">
+	</div>
+</body>
+
+<script>
+	var formattedIDs = []
+	/**
+	 * @param {string} f
+	 * @param {any[]} [arr]
+	*/
+	function runGoogleWithReturn(f, arr) {
+		if (arguments.length == 1) {
+			return new Promise((resolve, reject) => {
+				google.script.run
+					.withSuccessHandler(stuff => resolve(stuff))
+					.withFailureHandler(err => reject(err))
+					.callLibraryFunction(`CharacterSheetCode.${f}`)
+			})
+		} else if (arguments.length == 2) {
+			return new Promise((resolve, reject) => {
+				google.script.run
+					.withSuccessHandler(stuff => resolve(stuff))
+					.withFailureHandler(err => reject(err))
+					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+			})
+		}
+	}
+	/**
+	 * @param {string} f
+	 * @param {any[]} [arr]
+	*/
+	function runGoogle(f, arr) {
+		if (arguments.length == 1) {
+			return new Promise((resolve, reject) => {
+				google.script.run
+					.withSuccessHandler(() => resolve(''))
+					.withFailureHandler(err => reject(err))
+					.callLibraryFunction(`CharacterSheetCode.${f}`)
+			})
+		} else if (arguments.length == 2) {
+			return new Promise((resolve, reject) => {
+				google.script.run
+					.withSuccessHandler(() => resolve(''))
+					.withFailureHandler(err => reject(err))
+					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+			})
+		}
+	}
+	async function closer(evt) {
+		document.getElementById('loader').style.visibility = 'visible'
+		var x
+		formattedIDs.forEach((elem, i) => {
+			if (elem[0] == evt.id) x = i
+		})
+		if (evt.id == "addlevel") {
+			await runGoogle("levelBuffer", ['addlevel'])
+			google.script.host.close()
+		} else {
+			await runGoogle("levelBuffer", [formattedIDs[x][1]])
+			google.script.host.close()
+		}
+	}
+	document.querySelectorAll('input').forEach(x => x.autocomplete = 'off')
+	document.addEventListener("DOMContentLoaded", async () => {
+		document.getElementById('loader').style.visibility = 'visible'
+		const className = await runGoogleWithReturn("getLevels")
+		var html = "<div>Select an option</div>"
+		let capitalizer = v => { //this capitalizes the traits of the weapon
+			if (v.includes(' ')) { //if v includes spaces
+				const arr = v.split(" ")
+				for (j in arr) {
+					if (arr[j].includes('\n')) {
+						break
+					} else {
+						arr[j] = arr[j].charAt(0).toUpperCase() + arr[j].slice(1).toLowerCase()
+					}
+				}
+				return arr.join(" ")
+			} else {
+				return v.charAt(0).toUpperCase() + v.slice(1).toLowerCase()
+			}
+		}
+		var formattedNames = className.arr.map(x => capitalizer(x).replace(/ /g, ""))
+		formattedNames.forEach((name, i) => {
+			html += `\n<button id="edit${name}" class="option" onclick="closer(this);">Level Up/Edit ${capitalizer(className.arr[i])}</button><br>`
+			formattedIDs.push([`edit${name}`, className.arr[i]])
+		})
+		if (className.lvl < 20) html += `\n<button id="addlevel" class="option" onclick="closer(this);">Add New Class</button>`
+		document.getElementById('container').innerHTML = html
+		document.getElementById('loader').style.visibility = 'hidden'
+	})
+</script>
+
+</html>

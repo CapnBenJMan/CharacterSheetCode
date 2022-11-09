@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+</head>
+
+<style>
+	html,
+	body {
+		text-align: center;
+	}
+
+	.content {
+		font-family: Georgia;
+		font-size: 16px;
+		background-color: white;
+		color: black;
+		display: flex;
+		flex-direction: column;
+	}
+
+	input,
+	select,
+	label,
+	button {
+		font-family: inherit;
+		font-size: inherit;
+		vertical-align: middle;
+	}
+
+	input,
+	select,
+	button {
+		border-radius: 1em;
+	}
+
+	.loader {
+		border: 5px solid #f3f3f3;
+		border-radius: 50%;
+		border-top: 5px solid #3498db;
+		border-bottom: 5px solid #3498db;
+		width: 15px;
+		height: 15px;
+		position: absolute;
+		animation: spin 2s linear infinite;
+	}
+
+	.magic {
+		display: none !important;
+	}
+
+	.first tr {
+		width: 100%
+	}
+
+	table tr>td>input[type=number] {
+		width: calc(100% - 10px);
+		text-align: center;
+	}
+
+	.second th,
+	.second td {
+		border: 1px solid black;
+	}
+
+	th,
+	td {
+		border-radius: 1em;
+	}
+
+	.second tr:nth-child(1) th:nth-child(1) {
+		border: 0px;
+	}
+
+	.second tr:nth-child(n + 3) td:nth-last-child(1),
+	.second tr:nth-child(n + 4) td:nth-last-child(2),
+	.second tr:nth-child(n + 5) td:nth-last-child(3) {
+		border: 0px;
+	}
+</style>
+
+<body class="content">
+	<div>
+		<div><strong>Coin Totals to be Added</strong></div>
+		<table class="first">
+			<tr>
+				<td><input id="input1" type="number" value="0"></td>
+				<td><select id="select1"></select></td>
+				<td><input id="input2" type="number" value="0"></td>
+				<td><select id="select2"></select></td>
+			</tr>
+			<tr>
+				<td><input id="input3" type="number" value="0"></td>
+				<td><select id="select3"></select></td>
+				<td><input id="input4" type="number" value="0"></td>
+				<td><select id="select4"></select></td>
+			</tr>
+			<tr>
+				<td colspan="2" width="50%"><button type="button" onclick="importer()">Import Current Values</button>
+				</td>
+				<td colspan="2" width="50%"><button type="button" onclick="calculator()">Calculate</button></td>
+			</tr>
+		</table>
+		<div><strong>Coin Totals by Primary Coin Type</strong></div>
+		<table class="second" style="width: 100%; table-layout: fixed;">
+			<colgroup span="1" width="50px"></colgroup>
+			<colgroup span="4" width="calc(calc(100%-50px)/4)"></colgroup>
+			<tr>
+				<th></th>
+				<th>Platinum</th>
+				<th>Gold</th>
+				<th>Silver</th>
+				<th>Copper</th>
+			</tr>
+			<tr>
+				<th>cp</th>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<th>sp</th>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<th>gp</th>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<th>pp</th>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+		</table>
+	</div>
+</body>
+
+<script>
+	/** Returns the value of the function called
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
+	*/
+	function runGoogleWithReturn(f, arr) {
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
+
+	}
+	/** Simply calls a function with no return value
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
+	*/
+	function runGoogle(f, arr) {
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
+
+	}
+	/** @param {string} n */ let ID = n => document.getElementById(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qry = (n, el) => (el != undefined) ? el.querySelector(n) : document.querySelector(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qryA = (n, el) => (el != undefined) ? el.querySelectorAll(n) : document.querySelectorAll(n)
+
+	document.addEventListener("DOMContentLoaded", async () => { // on DOM Content Loaded
+		qryA('table tr>td>select').forEach(x => { // for each select element
+			x.innerHTML = `<option value="plat">pp</option>
+<option value="gold">gp</option>
+<option value="silv">sp</option>
+<option value="copp">cp</option>` // set the options for coin types
+		})
+	})
+
+	const conversions = { "plat": 1000, "gold": 100, "silv": 10, "copp": 1 } // object for coin conversions
+
+	/** Calculates the total for each coin type as a base */
+	function calculator() {
+		const total = [1, 2, 3, 4].reduce((tot, i) => tot + Number(ID(`input${i}`).value) * Number(conversions[String(ID(`select${i}`).value)]), 0),
+			// ^get the total from each input with their conversions applied
+			keys = Object.keys(conversions) // get the keys from conversions
+		for (let i = 3; i >= 0; i--) { // loop from plat to copp
+			var temp = total // set temp to total
+			for (let j = i; j >= 0; j--) { // loop from i to copp
+				const mod = temp % 10 ** j // get the modulo of temp from 10^j
+				qry(`.second tr:nth-child(${2 + j})>td:nth-child(${5 - i})`).innerHTML = (temp - mod) / 10 ** j // set the inner html of the selected cell to the calculated value
+				temp = mod // reassign temp as mod
+			}
+		}
+	}
+
+	/** Imports current coin values from character sheet */
+	async function importer() {
+		const vals = await runGoogleWithReturn('getCurrency') // get the character's coin values
+		const keys = Object.keys(conversions) // get the keys of conversions
+		for (let x = 0; x < 4; x++) { // loop through 0-3
+			ID(`input${x + 1}`).value = vals[x] // set input to value
+			ID(`select${x + 1}`).value = keys[x] // set select to keys
+		}
+	}
+</script>
+
+</html>
