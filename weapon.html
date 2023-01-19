@@ -84,7 +84,7 @@
 			<textarea id="custompropsExt"
 				style="margin: auto; min-width: 185px; min-height: 44px; max-height: 180px; max-width: 390px;"
 				placeholder="Additional info..."></textarea><br>
-			<button onclick="closeWeaponProps()">Close</button>
+			<button onclick="toggleWeaponProps(true)">Close</button>
 		</div>
 		<div id="propback" class="magic center back"></div>
 		<form onsubmit="submission()">
@@ -121,7 +121,7 @@
 					<option value="radiant">Radiant</option>
 					<option value="thunder">Thunder</option>
 				</select><br>
-				<button type="button" onclick="openWeaponProps()">Open Weapon Properties</button><br>
+				<button type="button" onclick="toggleWeaponProps(false)">Open Weapon Properties</button><br>
 				<label for="customtype">Weapon Type: </label>
 				<select id="customtype" name="customtype">
 					<option value="melee">Melee</option>
@@ -167,52 +167,49 @@
 </body>
 
 <script>
-	/**
-	 * @param {string} f
-	 * @param {any[]} [arr]
+	/** Returns the value of the function called
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
 	*/
 	function runGoogleWithReturn(f, arr) {
-		if (arguments.length == 1) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(stuff => resolve(stuff))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`)
-			})
-		} else if (arguments.length == 2) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(stuff => resolve(stuff))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
-			})
-		}
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
 	}
-	/**
-	 * @param {string} f
-	 * @param {any[]} [arr]
+	/** Simply calls a function with no return value
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
 	*/
 	function runGoogle(f, arr) {
-		if (arguments.length == 1) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(() => resolve(''))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`)
-			})
-		} else if (arguments.length == 2) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(() => resolve(''))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
-			})
-		}
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
 	}
-	document.querySelectorAll('input').forEach(x => x.autocomplete = 'off')
-	let ID = n => document.getElementById(n)
-	let capitalizer = v => { //this capitalizes the traits of the weapon
-		if (v.includes(' ')) { //if v includes spaces
+	/** @param {string} n */ let ID = n => document.getElementById(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qry = (n, el) => (el != undefined) ? el.querySelector(n) : document.querySelector(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qryA = (n, el) => (el != undefined) ? el.querySelectorAll(n) : document.querySelectorAll(n)
+
+	qryA('input').forEach(x => x.autocomplete = 'off')
+	let capitalizer = v => { // this capitalizes the traits of the weapon
+		if (v.includes(' ')) { // if v includes spaces
 			const arr = v.split(" ")
 			for (j in arr) {
 				if (arr[j].includes('\n')) {
@@ -226,19 +223,20 @@
 			return v.charAt(0).toUpperCase() + v.slice(1).toLowerCase()
 		}
 	}
-	var weapons = ID('weapons') //defines reference to type element and its options
-	async function submission() { //runs on pressing the confirm button
-		ID('loader').style.visibility = 'visible' //set loader to visible
+	const weapons = ID('weapons') // defines reference to type element and its options
+
+	async function submission() { // runs on pressing the confirm button
+		ID('loader').style.visibility = 'visible' // set loader to visible
 		const props = [...((ID('customprops').value !== '') ?
 			String(ID('customprops').value).split(/(?<!\() *, *(?![\w\s]*\))/g)
 			: ['-']), (ID('custompropsExt').innerHTML !== '') ? `Additional Info:\n\n${ID('custompropsExt').innerHTML}` : '']
-			.filter(x => x !== '')
-		const custom = {
-			name: capitalizer(ID('customname').value),
-			damage: `${ID('customdmgNum').value}d${ID('customdmgDie').value} ${ID('customdmgType').value}`,
-			props,
-			type: ID('customtype').value
-		}
+			.filter(x => x !== ''),
+			custom = {
+				name: capitalizer(ID('customname').value),
+				damage: `${ID('customdmgNum').value}d${ID('customdmgDie').value} ${ID('customdmgType').value}`,
+				props,
+				type: ID('customtype').value
+			}
 		await runGoogle("weaponSetter", [
 			weapons.value,
 			ID('proficient').checked,
@@ -257,6 +255,7 @@
 		])
 		google.script.host.close()
 	}
+
 	document.addEventListener("DOMContentLoaded", async () => {
 		const array = await runGoogleWithReturn('weaponInfo')
 		var options = array.map(x => capitalizer(x.name))
@@ -267,7 +266,8 @@
 			weapons.appendChild(el)
 		}
 	})
-	var same = ID("same"),
+
+	const same = ID("same"),
 		ddiv = ID("differentdiv")
 	same.onclick = () => {
 		if (same.checked) {
@@ -278,22 +278,19 @@
 			ddiv.style.position = 'absolute'
 		}
 	}
-	function openWeaponProps() {
-		ID('propspan').classList.remove('magic')
-		ID('propback').classList.remove('magic')
+
+	/** @param {boolean} bool */
+	function toggleWeaponProps(bool) {
+		ID('propspan').classList.toggle('magic', bool)
+		ID('propback').classList.toggle('magic', bool)
 	}
-	function closeWeaponProps() {
-		ID('propspan').classList.add('magic')
-		ID('propback').classList.add('magic')
-	}
+
 	function changer() {
-		var custom = ID('custom')
-		if (ID('weapons').value === 'Custom') {
-			if (custom.classList.contains('magic')) custom.classList.remove('magic')
-		} else {
-			if (!custom.classList.contains('magic')) custom.classList.add('magic')
-		}
+		const custom = ID('custom')
+		if (ID('weapons').value === 'Custom') custom.classList.toggle('magic', false)
+		else custom.classList.toggle('magic', true)
 	}
+
 	ID('overridebool').onchange = () => {
 		if (ID('overridebool').checked) {
 			ID('overridespan').className = ''

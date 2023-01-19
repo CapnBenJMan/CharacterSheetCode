@@ -82,8 +82,9 @@
 
 <body class="content">
 	<div>
-		<div class="loader" id="loader" style="visibility: hidden;"></div>
 		<form onsubmit="submission()">
+			<div class="loader magic" id="loader"></div>
+			<!--This is where dice info is stored-->
 			<table class="table">
 				<tr>
 					<th>Die</th>
@@ -120,8 +121,10 @@
 				</tr>
 			</table>
 			<br>
-			<label for="rolledhealth">Rolled Total :</label>
-			<input id="rolledhealth" type="number" placeholder="Don't add Con mod" required><br>
+			<!--Rolled Total-->
+			<label for="rolledhealth">Rolled Total : </label><input id="rolledhealth" type="number"
+				placeholder="Don't add Con mod" required><br>
+			<!--Use dice buttons-->
 			<button type="button" onclick="clear0()">Use No Hit Dice</button>
 			<button>Use Inputted Hit Dice</button>
 		</form>
@@ -129,84 +132,74 @@
 </body>
 
 <script>
-	/**
-	 * @param {string} f
-	 * @param {any[]} [arr]
+	/** Returns the value of the function called
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
 	*/
 	function runGoogleWithReturn(f, arr) {
-		if (arguments.length == 1) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(stuff => resolve(stuff))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`)
-			})
-		} else if (arguments.length == 2) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(stuff => resolve(stuff))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
-			})
-		}
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
 	}
-	/**
-	 * @param {string} f
-	 * @param {any[]} [arr]
+	/** Simply calls a function with no return value
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
 	*/
 	function runGoogle(f, arr) {
-		if (arguments.length == 1) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(() => resolve(''))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`)
-			})
-		} else if (arguments.length == 2) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(() => resolve(''))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
-			})
-		}
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
 	}
-	/** @param {string} n */
-	let ID = n => document.getElementById(n)
-	/** @param {string} n */
-	let qry = n => document.querySelector(n)
-	/** @param {string} n */
-	let qryA = n => document.querySelectorAll(n)
+	/** @param {string} n */ let ID = n => document.getElementById(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qry = (n, el) => (el != undefined) ? el.querySelector(n) : document.querySelector(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qryA = (n, el) => (el != undefined) ? el.querySelectorAll(n) : document.querySelectorAll(n)
 
 	const returns = runGoogleWithReturn('getHitDice')
 
-	document.addEventListener("DOMContentLoaded", async () => {
-		ID('loader').style.visibility = 'visible'
-		const hitDice = await returns
-		console.log(hitDice)
-		for (let i = 6; i <= 12; i += 2) {
-			qry(`#d${i}>td:nth-child(2)`).innerHTML = hitDice[`expendedd${i}`]
-			qry(`#d${i}>td>input`).max = hitDice[`maxd${i}`]
-		}
-		ID('loader').style.visibility = 'hidden'
+	document.addEventListener("DOMContentLoaded", async () => { // on DOM Content Loaded
+		ID('loader').classList.remove('magic') // show loader
+		const hitDice = await returns // get the return value of the returns promise
+		console.log(hitDice) // log hitDice
+		[6, 8, 10, 12].forEach(i => { // loop throught dice types
+			qry(`#d${i}>td:nth-child(2)`).innerHTML = hitDice[`expendedd${i}`] // set expended hit dice
+			qry(`#d${i}>td>input`).max = hitDice[`maxd${i}`] // set max hit dice
+		})
+		ID('loader').classList.add('magic') // hide loader
 	})
 
 	async function submission() {
 		event.preventDefault()
-		let val = i => Number(qry(`#${i}>td>input`).value)
-		const hitDice = await returns
-		const stuff = { d6: 0, d8: 0, d10: 0, d12: 0 }
-		for (let i in stuff) {
-			stuff[i] = Number(hitDice[`expended${i}`]) - Number(qry(`#${i}>td>input`).value)
-		}
-		setTimeout(() => { google.script.host.close() }, 1500)
-		runGoogle('updateHitDice', [stuff.d6, stuff.d8, stuff.d10, stuff.d12, true,
+		let val = dx => Number(qry(`#${dx}>td>input`).value)
+		// ^arrow function for getting the value of a certain die's input element as a number
+		const hitDice = await returns // get hit dice from returns promise
+		const dice = { d6: 0, d8: 0, d10: 0, d12: 0 } // dice object for getting the amount of hit dice that should be remaining
+		for (let i in dice) dice[i] = Number(hitDice[`expended${i}`]) - val(i) // This calculates the values of the above comment
+		setTimeout(() => { google.script.host.close() }, 1500) // close the dialog after 1.5s
+		runGoogle('updateHitDice', [dice.d6, dice.d8, dice.d10, dice.d12, true,
 		Number(ID('rolledhealth').value),
-		[val('d6'), val('d8'), val('d10'), val('d12')]])
+		[val('d6'), val('d8'), val('d10'), val('d12')]]) // run updateHitDice with these parameters
 	}
 
-	function clear0() {
-		google.script.host.close()
+	function clear0() { 
+		google.script.host.close() // closes the dialog
 	}
 
 </script>

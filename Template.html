@@ -85,7 +85,6 @@
 				.withFailureHandler(err => reject(err))
 				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
 		})
-
 	}
 	/** Simply calls a function with no return value
 	 * @param {string} f The function name
@@ -104,7 +103,6 @@
 				.withFailureHandler(err => reject(err))
 				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
 		})
-
 	}
 	/** @param {string} n */ let ID = n => document.getElementById(n)
 	/** @param {string} n @param {HTMLElement|Element} [el] */ let qry = (n, el) => (el != undefined) ? el.querySelector(n) : document.querySelector(n)

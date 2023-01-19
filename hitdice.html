@@ -61,6 +61,10 @@
 		animation: spin 2s linear infinite;
 	}
 
+	.magic {
+		display: none !important;
+	}
+
 	@keyframes spin {
 		0% {
 			transform: rotate(0deg);
@@ -73,7 +77,7 @@
 </style>
 
 <body>
-	<div id="loader" class="loader" style="visibility: hidden;"></div>
+	<div id="loader" class="loader magic"></div>
 	<div id="container" class="container">
 		<div class="grid-container">
 			<div id="maxd6">Max d6:</div>
@@ -106,101 +110,69 @@
 </body>
 
 <script>
-	/**
-	 * @param {string} f
-	 * @param {any[]} [arr]
+	/** Returns the value of the function called
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
 	*/
 	function runGoogleWithReturn(f, arr) {
-		if (arguments.length == 1) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(stuff => resolve(stuff))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`)
-			})
-		} else if (arguments.length == 2) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(stuff => resolve(stuff))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
-			})
-		}
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
 	}
-	/**
-	 * @param {string} f
-	 * @param {any[]} [arr]
+	/** Simply calls a function with no return value
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
 	*/
 	function runGoogle(f, arr) {
-		if (arguments.length == 1) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(() => resolve(''))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`)
-			})
-		} else if (arguments.length == 2) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(() => resolve(''))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
-			})
-		}
-	}
-	/** @param {string} id */
-	let ID = id => document.getElementById(id)
-	document.querySelectorAll('input').forEach(x => x.autocomplete = 'off')
-	document.addEventListener("DOMContentLoaded", async () => {
-		ID('loader').style.visibility = 'visible'
-
-		var elements = [
-			ID('maxd6'),
-			ID('expendedd6'),
-			ID('maxd8'),
-			ID('expendedd8'),
-			ID('maxd10'),
-			ID('expendedd10'),
-			ID('maxd12'),
-			ID('expendedd12')
-		]
-		const values = await runGoogleWithReturn("getHitDice")
-		elements.forEach(elem => {
-			var id = elem.id
-			if (id.includes('maxd')) {
-				var dieType = id.slice(-2).replace("d", "")
-				elem.innerHTML = `Max d${dieType}: ${values[id]}`
-			} else if (id.includes('expendedd')) {
-				var maxType = id.slice(-2).replace("d", "")
-				elem.min = values[id]
-				elem.max = values[`maxd${maxType}`]
-				elem.value = values[id]
-			}
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
 		})
-		ID('loader').style.visibility = 'hidden'
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
+	}
+	/** @param {string} n */ let ID = n => document.getElementById(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qry = (n, el) => (el != undefined) ? el.querySelector(n) : document.querySelector(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qryA = (n, el) => (el != undefined) ? el.querySelectorAll(n) : document.querySelectorAll(n)
+
+	qryA('input').forEach(x => x.autocomplete = 'off') // disable autocomplete for each input element
+	document.addEventListener("DOMContentLoaded", async () => { // on DOM Content Loaded
+		ID('loader').classList.remove('magic') // show loader
+
+		const values = await runGoogleWithReturn("getHitDice") // get hit dice values
+
+		[6, 8, 10, 12].forEach(n => { // loop through each die type
+			const max = ID(`maxd${n}`), expended = ID(`expendedd${n}`) // get max and expended elements for die type
+			max.innerHTML = `Max d${n}: ${values[`maxd${n}`]}` // set the innerHTML of the max element
+			expended.min = values[`expendedd${n}`] // set the min for expended input
+			expended.max = values[`maxd${n}`] // set the max for expended input
+			expended.value = values[`expendedd${n}`] // set the value for expended input
+		})
+
+		ID('loader').classList.add('magic') // hide loader
 	})
 
 	async function update() {
-		ID('loader').style.visibility = 'visible'
-		// /** @param {string} id */
-		let parseVal = id => Number(ID(id).value)
-		// /** @param {string} id */
-		// let parseMin = id => Number(ID(id).min)
-		// var startingValue = parseMin('expendedd6') + parseMin('expendedd8') + parseMin('expendedd10') + parseMin('expendedd12'),
-		// 	currentValue = parseVal('expendedd6') + parseVal('expendedd8') + parseVal('expendedd10') + parseVal('expendedd12')
-		// if (currentValue - startingValue > allowedTotal) {
-		// 	var error = ID('error'), dices = 'dice'
-		// 	var allowed = currentValue - startingValue - allowedTotal
-		// 	if (allowed == 1) dices = 'die'
-		// 	error.innerHTML =
-		// 		'Error: Your entered values exceed the maximum number of hit dice you are allowed to recover. ' +
-		// 		`Please remove ${allowed} hit ${dices} and try again.`
-		// 	error.style.visibility = 'visible'
-		// 	ID('loader').style.visibility = 'hidden'
-		// } else {
+		ID('loader').classList.remove('magic') // show loader
+		/** @param {string} id */ let parseVal = id => Number(ID(id).value)
 		await runGoogle("updateHitDice", [parseVal('expendedd6'), parseVal('expendedd8'), parseVal('expendedd10'), parseVal('expendedd12')])
-		google.script.host.close()
-		// }
+		// ^update hit dice with inputted values
+		google.script.host.close() // close dialog
 	}
 </script>
 

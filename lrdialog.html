@@ -75,67 +75,61 @@
 </body>
 
 <script>
-	/**
-	 * @param {string} f
-	 * @param {any[]} [arr]
+	/** Returns the value of the function called
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
 	*/
 	function runGoogleWithReturn(f, arr) {
-		if (arguments.length == 1) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(stuff => resolve(stuff))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`)
-			})
-		} else if (arguments.length == 2) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(stuff => resolve(stuff))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
-			})
-		}
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
 	}
-	/**
-	 * @param {string} f
-	 * @param {any[]} [arr]
+	/** Simply calls a function with no return value
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
 	*/
 	function runGoogle(f, arr) {
-		if (arguments.length == 1) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(() => resolve(''))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`)
-			})
-		} else if (arguments.length == 2) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(() => resolve(''))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
-			})
-		}
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
 	}
-	let ID = n => document.getElementById(n)
-	let qry = n => document.querySelector(n)
-	let qryA = n => document.querySelectorAll(n)
+	/** @param {string} n */ let ID = n => document.getElementById(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qry = (n, el) => (el != undefined) ? el.querySelector(n) : document.querySelector(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qryA = (n, el) => (el != undefined) ? el.querySelectorAll(n) : document.querySelectorAll(n)
 
 	qryA('input').forEach(x => x.autocomplete = 'off')
-	var type = ID('type') //defines reference to type element and its options
-	var info = ID('infotext') //defines reference to infotext
+	const type = ID('type') // defines reference to type element and its options
+	const info = ID('infotext') // defines reference to infotext
 
-	async function submission() { //runs on pressing the confirm button
-		ID('loader').style.visibility = 'visible' //set loader to visible
-		const range = await runGoogleWithReturn('selection') //get range of current cell
-		var r1 = type.value //selected option
-		var r2 = ID('shortrest').checked //runs on short rest
-		var r3 = r2 ? 'short or long' : 'long' //type of rest
-		await runGoogle("restCompiler", [range, r1, r2, r3]) //runs rest compiler
-		google.script.host.close() //closes dialog
+	async function submission() { // runs on pressing the confirm button
+		ID('loader').style.visibility = 'visible' // set loader to visible
+		const range = await runGoogleWithReturn('selection') // get range of current cell
+		const r1 = type.value, // selected option
+			r2 = ID('shortrest').checked, // runs on short rest
+			r3 = r2 ? 'short or long' : 'long' // type of rest
+		await runGoogle("restCompiler", [range, r1, r2, r3]) // runs rest compiler
+		google.script.host.close() // closes dialog
 	}
 
-	type.addEventListener('change', t => { //on selection change
+	type.addEventListener('change', t => { // on selection change
 		const tt = {
 			'current': `Current Value: Select this option to have the sheet reset this cell to its current value.`,
 			'cell': `Value of a Cell: Select this option to have the sheet reset this cell to the value of a certain cell.`,

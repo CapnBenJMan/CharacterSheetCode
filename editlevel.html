@@ -22,18 +22,11 @@
 	}
 
 	input {
-		border-radius: 1em;
 		text-align: center;
-		font-family: Georgia;
-		font-size: 15px;
 	}
 
-	select {
-		border-radius: 1em;
-		font-family: Georgia;
-		font-size: 15px;
-	}
-
+	input,
+	select,
 	button {
 		border-radius: 1em;
 		font-family: Georgia;
@@ -73,18 +66,14 @@
 	<div id="loader" class="loader" style="visibility: hidden;"></div>
 	<div id="container" class="container">
 		<form id="form">
-			<label for="class">Class</label>
-			<input type="text" id="class" required readonly="readonly"><br>
-			<label for="subclass">Subclass</label>
-			<input type="text" id="subclass" readonly="readonly"><br>
-			<label for="level">Level</label>
-			<input type="number" id="level" style="width: 50px;" min="1" max="20" required readonly="readonly"
-				onkeypress="return event.charCode >= 48 && event.charCode <= 57">
-			<label for="hitdie">Hit Die: d</label>
-			<input type="number" id="hitdie" style="width: 50px" min="6" max="12" step="2" required readonly="readonly"
+			<label for="class">Class</label><input type="text" id="class" required readonly="readonly"><br>
+			<label for="subclass">Subclass</label><input type="text" id="subclass" readonly="readonly"><br>
+			<label for="level">Level</label><input type="number" id="level" style="width: 50px;" min="1" max="20"
+				required readonly="readonly" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+			<label for="hitdie">Hit Die: d</label><input type="number" id="hitdie" style="width: 50px" min="6" max="12"
+				step="2" required readonly="readonly"
 				onkeypress="return event.charCode >= 48 && event.charCode <= 57"><br>
-			<label for="spellcasting">Spellcasting:</label>
-			<select id="spellcasting" readonly="readonly">
+			<label for="spellcasting">Spellcasting:</label><select id="spellcasting" readonly="readonly">
 				<option>None</option>
 				<option>Full</option>
 				<option>Half</option>
@@ -92,58 +81,56 @@
 				<option>Pact</option>
 			</select><br>
 			<button id="addedit" onclick="submissionHandler()" disabled>Save Class</button><br>
-			<button type="button" id="remove" onclick="removeClass()" disabled>Remove Class</button>
+			<button type="button" id="removeClass" onclick="removeClassClicker()" disabled>Remove Class</button>
 			<div>Note: The process of updating the sheet can sometimes take up to 20-40 seconds.</div>
 		</form>
 	</div>
 </body>
 
-<script>
-	/**
-	 * @param {string} f
-	 * @param {any[]} [arr]
-	*/
+<script defer>/** Returns the value of the function called
+* @param {string} f The function name
+* @param {any[]} [arr] The arguments to be passed to the function
+*/
 	function runGoogleWithReturn(f, arr) {
-		if (arguments.length == 1) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(stuff => resolve(stuff))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`)
-			})
-		} else if (arguments.length == 2) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(stuff => resolve(stuff))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
-			})
-		}
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
+
 	}
-	/**
-	 * @param {string} f
-	 * @param {any[]} [arr]
+	/** Simply calls a function with no return value
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
 	*/
 	function runGoogle(f, arr) {
-		if (arguments.length == 1) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(() => resolve(''))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`)
-			})
-		} else if (arguments.length == 2) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(() => resolve(''))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
-			})
-		}
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
+
 	}
-	document.querySelectorAll('input').forEach(x => x.autocomplete = 'off')
-	var x, y
-	let ID = t => document.getElementById(t)
+   /** @param {string} n */ let ID = n => document.getElementById(n)
+   /** @param {string} n @param {HTMLElement|Element} [el] */ let qry = (n, el) => (el != undefined) ? el.querySelector(n) : document.querySelector(n)
+   /** @param {string} n @param {HTMLElement|Element} [el] */ let qryA = (n, el) => (el != undefined) ? el.querySelectorAll(n) : document.querySelectorAll(n)
+
+	qryA('input').forEach(x => x.autocomplete = 'off') // turn off input autocomplete
+	var /** @type {"add"|"edit"} */ addedit, /** @type {number} */ editrow
 	/** @param {string} v */
 	let capitalizer = v => { //this capitalizes the traits of the weapon
 		if (v.includes(' ')) { //if v includes spaces
@@ -160,72 +147,63 @@
 			return v.charAt(0).toUpperCase() + v.slice(1).toLowerCase()
 		}
 	}
-	var loader = ID('loader')
+	const loader = ID('loader')
 	document.addEventListener("DOMContentLoaded", async () => {
-		console.log("Loading...")
-		loader.style.visibility = 'visible'
-		const res = await runGoogleWithReturn('getClassInfo')
-		x = res.arr[1]
-		y = res.arr[0]
-		runGoogle('clearClassEdit')
-		switch (res.arr[0]) {
-			case 'edit':
-				ID('class').value = res.arr[2].class
-				ID('subclass').value = res.arr[2].subclass
-				ID('level').value = res.arr[2].level
-				ID('hitdie').value = res.arr[2].hitdie
-				ID('spellcasting').value = res.arr[2].spells
-				makeEditable()
+		loader.style.visibility = 'visible' // show loader
+		const /** @type {{arr: (string | number | {class: any, subclass: any, level: any, hitdie: any, spells: any})[],lvl: number}} */
+			res = await runGoogleWithReturn('getClassInfo')
+		addedit = res.arr[0] // gets the type of edit
+		editrow = res.arr[1] // gets the edited row
+		runGoogle('clearClassEdit') // removes the stored class edit in the character sheet
+		switch (addedit) {
+			case 'edit': // if editing a class
+				ID('class').value = res.arr[2].class // store class value
+				ID('subclass').value = res.arr[2].subclass // store subclass value
+				ID('level').value = res.arr[2].level // store level
+				ID('hitdie').value = res.arr[2].hitdie // store hitdie
+				ID('spellcasting').value = res.arr[2].spells // store spells
+				makeEditable() // run make editable
 				break
-			case 'add':
-				makeEditable()
+			case 'add': // if adding a class
+				makeEditable() // run make editable
 				break
 		}
-		function makeEditable() {
-			ID('class').readOnly = false
-			ID('subclass').readOnly = false
-			ID('level').readOnly = false
-			ID('level').max = (20 - res.lvl) + (res.arr[2] ? Number(res.arr[2].level) : 0)
-			ID('hitdie').readOnly = false
-			ID('spellcasting').readOnly = false
-			ID('addedit').disabled = false
-			ID('remove').disabled = false
-			loader.style.visibility = 'hidden'
+		function makeEditable() { // makes each disabled or readonly element no longer like that
+			['class', 'subclass', 'level', 'hitdie', 'spellcasting'].forEach(x => ID(x).readOnly = false); // readOnly setters
+			['addedit', 'removeClass'].forEach(x => ID(x).disabled = false) // disabled setters
+			ID('level').max = (20 - res.lvl) + (res.arr[2] ? Number(res.arr[2].level) : 0) // set level max
+			loader.style.visibility = 'hidden' // hide loader
 			console.log("Loaded")
 		}
 	})
 
 	function submissionHandler() {
-		event.preventDefault()
+		event.preventDefault() // stops form submission
 		try {
-			const a = ID('class').value
-			const b = ID('level').value
-			const c = ID('hitdie').value
-			if (a != '' && b != '' && c != '') {
-				var className = ID('class').value,
+			const a = ID('class').value,
+				b = ID('level').value,
+				c = ID('hitdie').value
+			if (a != '' && b != '' && c != '') { // if each required input is not blank
+				var className = capitalizer(a),
 					subclass = ID('subclass').value,
-					level = Number(ID('level').value),
+					level = Number(b),
 					levelMax = Number(ID('level').max),
-					hitdie = Number(ID('hitdie').value),
+					hitdie = Number(c),
 					spells = ID('spellcasting').value
-				/* console.log(`Vals ==> HitDie: ${hitdie} | Level: ${level} | LevelMax: ${levelMax}}`)
-				console.log(`Types ==> HitDie: ${typeof hitdie} | Level: ${typeof level} | LevelMax: ${typeof levelMax}}`)
-				console.log(hitdie % 2 == 0, hitdie >= 6, hitdie <= 12, level <= levelMax) */
-				if ([6, 8, 10, 12].some(x => x == hitdie) && level <= levelMax) {
-					loader.style.visibility = 'visible'
-					setTimeout(() => google.script.host.close(), 1500)
-					runGoogle("addEditInfo", [capitalizer(className), capitalizer(subclass), level, hitdie, spells, x, y])
+				if ([6, 8, 10, 12].some(x => x == hitdie) && level <= levelMax) { // if hitdie is a valid value and level is less than level max
+					loader.style.visibility = 'visible' // show loader
+					setTimeout(() => google.script.host.close(), 1500) // close dialog after 1.5s
+					runGoogle("addEditInfo", [className, capitalizer(subclass), level, hitdie, spells, editrow, addedit]) // run addEditInfo with these arguments
 				}
-			} else {
-				console.log(a, b, c)
-			}
+			} else console.log(a, b, c)
 		} catch (err) { console.error(err) }
 	}
 
-	function removeClass() {
-		loader.style.visibility = 'visible'
-		setTimeout(() => google.script.host.close(), 1500)
-		runGoogle("addEditInfo", ['', '', '', '', '', x])
+	function removeClassClicker() {
+		event.preventDefault()
+		loader.style.visibility = 'visible' // show loader
+		setTimeout(() => google.script.host.close(), 1500) // close dialog after 1.5s
+		runGoogle("addEditInfo", ['', '', '', '', '', editrow]) // run addEditInfo with mostly empty arguments
 	}
 </script>
 

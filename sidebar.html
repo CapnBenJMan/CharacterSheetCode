@@ -228,11 +228,18 @@
 		left: 50%;
 		transform: translate(-50%)
 	}
+
+	/* @media (prefers-color-scheme: dark) {
+		body {
+			background-color: black;
+			color: white;
+		}
+	} */
 </style>
 
 <body>
 	<!--This is the loading icon-->
-	<div id="loader" class="loader" style="visibility: visible;"></div>
+	<div id="loader" class="loader magic"></div>
 	<!--This is the version of the sheet/code-->
 	<div class="version">
 		<div id="version">vX.Y.Z</div>
@@ -421,93 +428,82 @@
 </body>
 <script>
 	const svg = svgReturn()
-	/**
-	 * @param {string} f
-	 * @param {any[]} [arr]
+	/** Returns the value of the function called
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
 	*/
 	function runGoogleWithReturn(f, arr) {
-		if (arguments.length == 1) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(stuff => resolve(stuff))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`)
-			})
-		} else if (arguments.length == 2) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(stuff => resolve(stuff))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
-			})
-		}
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
 	}
-	/**
-	 * @param {string} f
-	 * @param {any[]} [arr]
+	/** Simply calls a function with no return value
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
 	*/
 	function runGoogle(f, arr) {
-		if (arguments.length == 1) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(() => resolve(''))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`)
-			})
-		} else if (arguments.length == 2) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(() => resolve(''))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
-			})
-		}
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
 	}
-	let ID = x => document.getElementById(x)
-	let qry = x => document.querySelector(x)
-	let qryA = x => document.querySelectorAll(x)
+	/** @param {string} n */ let ID = n => document.getElementById(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qry = (n, el) => (el != undefined) ? el.querySelector(n) : document.querySelector(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qryA = (n, el) => (el != undefined) ? el.querySelectorAll(n) : document.querySelectorAll(n)
+
 	qryA('input').forEach(x => x.autocomplete = 'off')
-	var loader = ID('loader') //define loader element
+	const loader = ID('loader') // define loader element
 	var maximum = 0
 	const HP = { cur: 0, temp: 0, bonus: 0, limit: 0, get max() { return maximum + this.temp + this.bonus } }
 	var spellsIsRunning = false
-	function reload() { //reload button code
-		loader.style.visibility = 'visible' //shows loader
-		runGoogle("sideBarLoader") //runs the sidebar loader
+
+	function reload() { // reload button code
+		loader.classList.remove('magic') // shows loader
+		runGoogle("sideBarLoader") // runs the sidebar loader
 	}
-	document.addEventListener('DOMContentLoaded', () => { //when the sidebar finishes loading
-		getCurrent()/* .then(() => {
-			qryA('.dbutton').forEach(x => {
-				for (let i = 16; getComputedStyle(x).height > 32; i -= 0.01) x.style.fontSize = `${i}px`
-			})
-		}) */ //run get current
+	document.addEventListener('DOMContentLoaded', () => { // when the sidebar finishes loading
+		getCurrent()
 		setTimeout(() => {
-			if (loader.style.visibility == 'visible') ID('errormessage').className = ''
+			if (loader.style.visibility == 'visible') ID('errormessage').classList.remove('magic')
 		}, 20000)
 	})
-	ID('errormessage').onclick = () => ID('errormessage').className = 'magic'
-	async function getCurrent() { //get current values of health cells and update formatting to match
+	ID('errormessage').onclick = () => ID('errormessage').classList.add('magic')
+
+	async function getCurrent() { // get current values of health cells and update formatting to match
 		try {
-			loader.style.visibility = 'visible' //show loader while code is processing
+			loader.classList.remove('magic') // show loader while code is processing
 			ID('ip').style.backgroundImage = "url('data:image/svg+xml;base64," + window.btoa(svg) + "')"
 			qryA('#SR, #LR').forEach(x => x.style.width = `39%`)
 			qryA('#\\+LR, #-LR').forEach(x => x.style.width = `${(80 / 300) * 100}%`)
 			qryA('#setSlots, #spellReturn').forEach(x => x.style.width = `${(95 / 285) * 100}%`)
 			qryA('#bonushp, #bhplimit').forEach(x => x.style.width = `42%`)
-			const returnVal = await runGoogleWithReturn('getCurrent') //run code to return values of health cells
+			const returnVal = await runGoogleWithReturn('getCurrent') // run code to return values of health cells
 			HP.cur = Number(returnVal[0])
 			maximum = Number(returnVal[1])
 			HP.temp = Number(returnVal[2])
 			HP.bonus = Number(returnVal[6])
-			if (returnVal[3]) {
-				getSpells(returnVal[3]) //run get spells
-			}
+			if (returnVal[3]) getSpells(returnVal[3]) // run get spells
 			ID('version').innerHTML = returnVal[5]
 			updateHealth()
-			if (!spellsIsRunning) loader.style.visibility = 'hidden'
-		} catch (err) {
-			console.error(err)
-		}
+			if (!spellsIsRunning) loader.classList.add('magic')
+		} catch (err) { console.error(err) }
 	}
 
 	const toggles = qryA('.content .toggle input[type=checkbox]')
@@ -515,31 +511,31 @@
 	toggles.forEach(x => x.onchange = () => toggles.forEach(y => y.checked = x.checked))
 
 	qryA('#main .dbutton').forEach(x => {
-		//for each button, create an onmouseover, onmouseout, onmousedown, and onmouseup listener
-		x.onmouseover = () => helptext('on', x.id) //onmouseover, turn on helptext
-		x.onmouseout = () => helptext('off') //onmouseout, turn off helptext
-		x.onmousedown = () => animationControl('pause') //onmousedown, pause scrolling helptext
-		x.onmouseup = () => animationControl('resume') //onmouseup, unpause scrolling helptext
+		// for each button, create an onmouseover, onmouseout, onmousedown, and onmouseup listener
+		x.onmouseover = () => helptext('on', x.id) // onmouseover, turn on helptext
+		x.onmouseout = () => helptext('off') // onmouseout, turn off helptext
+		x.onmousedown = () => animationControl('pause') // onmousedown, pause scrolling helptext
+		x.onmouseup = () => animationControl('resume') // onmouseup, unpause scrolling helptext
 	})
 	qryA('#tools .dbutton').forEach(x => {
-		//for each button, create an onmouseover, onmouseout, onmousedown, and onmouseup listener
-		x.onmouseover = () => helptext1('on', x.id) //onmouseover, turn on helptext
-		x.onmouseout = () => helptext1('off') //onmouseout, turn off helptext
-		x.onmousedown = () => animationControl('pause') //onmousedown, pause scrolling helptext
-		x.onmouseup = () => animationControl('resume') //onmouseup, unpause scrolling helptext
+		// for each button, create an onmouseover, onmouseout, onmousedown, and onmouseup listener
+		x.onmouseover = () => helptext1('on', x.id) // onmouseover, turn on helptext
+		x.onmouseout = () => helptext1('off') // onmouseout, turn off helptext
+		x.onmousedown = () => animationControl('pause') // onmousedown, pause scrolling helptext
+		x.onmouseup = () => animationControl('resume') // onmouseup, unpause scrolling helptext
 	})
 	qryA('.content .toggle').forEach(toggle => {
-		var tip = toggle.children.namedItem('tip') //define reference to tiptext
+		var tip = toggle.children.namedItem('tip') // define reference to tiptext
 		toggle.onmouseover = () => {
 			tip.innerHTML = `Tip: You can hold down a button to pause any scrolling 
       text for ease of reading. If you don't want the button to activate, make sure to release off of the button.` }
-		//onmouseover for toggle button, show tiptext
-		toggle.onmouseout = () => tip.innerHTML = ''  //onmouseout, hide tiptext
+		// onmouseover for toggle button, show tiptext
+		toggle.onmouseout = () => tip.innerHTML = ''  // onmouseout, hide tiptext
 	})
 
 	async function updateHealth() {
 		// This is where the references are defined
-		var hpbar = ID('hpbar'),
+		const hpbar = ID('hpbar'),
 			bhpbar = ID('bhpbar'),
 			thpbar = ID('thpbar'),
 			healthText = ID('healthtext')
@@ -548,8 +544,8 @@
 		bhpbar.style.width = `${(HP.bonus / HP.max) * 100}%`
 		thpbar.style.width = `${(HP.temp / HP.max) * 100}%`
 		// This is where the color of the bars are set
-		const hpcolor = colorArray((HP.cur / maximum) * 100)
-		const bhpcolor = colorArrayB((HP.bonus / HP.max) * 100)
+		const hpcolor = colorArray((HP.cur / maximum) * 100),
+			bhpcolor = colorArrayB((HP.bonus / HP.max) * 100)
 		hpbar.style.backgroundColor = `rgb(${hpcolor[0]}, ${hpcolor[1]}, 0)`
 		bhpbar.style.backgroundColor = `rgb(${bhpcolor[0]}, ${bhpcolor[1]}, 255)`
 		// This is where the corners of the bars are set
@@ -564,9 +560,11 @@
 		healthText.style.fontSize = '16px'
 		for (let i = 16; getComputedStyle(qry('.back')).height <= getComputedStyle(qry('.healthtext')).height; i -= 0.01) healthText.style.fontSize = `${i}px`
 	}
+
+	/** @param {string} button */
 	async function health(button) {
 		const nue = [null, undefined, '']
-		//if input is not null, undefined, or an empty string and if input is greater than 0
+		// if input is not null, undefined, or an empty string and if input is greater than 0
 		if (nue.every(x => x != ID('ip').value) && ID('ip').value > 0) {
 			var input = parseInt(ID('ip').value)
 			switch (button) {
@@ -618,30 +616,35 @@
 			updateHealth()
 		}
 	}
+
 	async function longRest() {
-		loader.style.visibility = 'visible' //set loader to visible while processing
+		loader.classList.remove('magic') // set loader to visible while processing
 		ID('spellcast').readonly = true
-		await runGoogle('longRest') //run long rest code
-		getCurrent() //run getCurrent
+		await runGoogle('longRest') // run long rest code
+		getCurrent() // run getCurrent
 	}
+
 	async function shortRest() {
-		loader.style.visibility = 'visible' //set loader to visible while processing
+		loader.classList.remove('magic') // set loader to visible while processing
 		ID('spellcast').readonly = true
-		await runGoogle('shortRest') //run short rest code
-		getCurrent() //run getCurrent
+		await runGoogle('shortRest') // run short rest code
+		getCurrent() // run getCurrent
 	}
+
 	async function addLongRest() {
-		loader.style.visibility = 'visible' //set loader to visible while processing
-		await runGoogle('addLongRest') //run add rest code
-		loader.style.visibility = 'hidden' //set loader to hidden as processing ends
+		loader.classList.remove('magic') // set loader to visible while processing
+		await runGoogle('addLongRest') // run add rest code
+		loader.classList.add('magic') // set loader to hidden as processing ends
 	}
+
 	async function removeLongRest() {
-		loader.style.visibility = 'visible' //set loader to visible while processing
-		await runGoogle('removeLongRest') //run remove rest code
-		loader.style.visibility = 'hidden' //set loader to hidden as processing ends
+		loader.classList.remove('magic') // set loader to visible while processing
+		await runGoogle('removeLongRest') // run remove rest code
+		loader.classList.add('magic') // set loader to hidden as processing ends
 	}
-	function helptext(ioBool, buttonType) { //input/output Boolean, button id
-		if (ID('togglehelp').checked == true) { //if enable helptext is checked
+
+	function helptext(ioBool, buttonType) { // input/output Boolean, button id
+		if (ID('togglehelp').checked == true) { // if enable helptext is checked
 			const infoRepository = {
 				'dmg': 'Enter a value in the input box and press this button to have the program calculate damage.',
 				'heal': 'Enter a value in the input box and press this button to have the program calculate healing.',
@@ -658,26 +661,26 @@
 				'bonushp': 'Enter a value in the input box and press this button to have the program calculate BonusHP for things like Wild Shape Health, Abjuration Wizard\'s Arcane Ward, Polymorph Health, etc.',
 				'bhplimit': 'Use this button to apply a limit to the amount of BonusHP the character can have. Enter 0 to remove the limit.'
 			}
-			var ht = ID('helptext') //define reference to helptext div element
-			var toh = ID('textofhelp') //define reference to helptext paragraph element
-			const textOfHelp = (ioBool == 'on') ? infoRepository[buttonType] : '' //define paragraph content variable
-			if (ioBool == 'on') { //if onmouseover was triggered
-				toh.innerHTML = textOfHelp //set helptext to selected button helptext
+			const ht = ID('helptext'), // define reference to helptext div element
+				toh = ID('textofhelp') // define reference to helptext paragraph element
+			const textOfHelp = (ioBool == 'on') ? infoRepository[buttonType] : '' // define paragraph content variable
+			if (ioBool == 'on') { // if onmouseover was triggered
+				toh.innerHTML = textOfHelp // set helptext to selected button helptext
 				setTimeout(() => {
-					if (parseFloat(getComputedStyle(ht).height, 10) < parseFloat(getComputedStyle(toh).height, 10)) { //if helptext is greater than 115 in length
-						toh.style.animation = 'scroll 5s linear 1s infinite alternate' //create scrolling animation
-					}
+					if (parseFloat(getComputedStyle(ht).height, 10) < parseFloat(getComputedStyle(toh).height, 10)) // if helptext is greater than 115 in length
+						toh.style.animation = 'scroll 5s linear 1s infinite alternate' // create scrolling animation
 				}, 1)
-				if (ht.classList.contains('magic')) ht.classList.remove('magic')
-			} else if (ioBool == 'off') { //if onmouseout was triggered
-				toh.innerHTML = '' //set helptext to empty string
-				toh.style.animation = '' //end animation
-				if (!ht.classList.contains('magic')) ht.classList.add('magic')
+				ht.classList.toggle('magic', false)
+			} else if (ioBool == 'off') { // if onmouseout was triggered
+				toh.innerHTML = '' // set helptext to empty string
+				toh.style.animation = '' // end animation
+				ht.classList.toggle('magic', true)
 			}
 		}
 	}
-	function helptext1(ioBool, buttonType) { //input/output Boolean, button id
-		if (ID('togglehelpT').checked == true) { //if enable helptext is checked
+
+	function helptext1(ioBool, buttonType) { // input/output Boolean, button id
+		if (ID('togglehelpT').checked == true) { // if enable helptext is checked
 			const infoRepository = {
 				'returnTools': 'Use this button to return to the main page.',
 				'featurelookup': 'Use this button to search for a feature, feat, magic item, or spell.',
@@ -687,27 +690,28 @@
 				'sethitdice': 'Use this button to override your current amount of hit dice.',
 				'equipment': 'Use this button to copy a piece of equipment to the sheet.'
 			}
-			var ht = ID('helptextT') //define reference to helptext div element
-			var toh = ID('textofhelpT') //define reference to helptext paragraph element
-			const textOfHelp = (ioBool == 'on') ? infoRepository[buttonType] : '' //define paragraph content variable
-			if (ioBool == 'on') { //if onmouseover was triggered
-				toh.innerHTML = textOfHelp //set helptext to selected button helptext
+			const ht = ID('helptextT'), // define reference to helptext div element
+				toh = ID('textofhelpT') // define reference to helptext paragraph element
+			const textOfHelp = (ioBool == 'on') ? infoRepository[buttonType] : '' // define paragraph content variable
+			if (ioBool == 'on') { // if onmouseover was triggered
+				toh.innerHTML = textOfHelp // set helptext to selected button helptext
 				setTimeout(() => {
-					if (parseFloat(getComputedStyle(ht).height, 10) < parseFloat(getComputedStyle(toh).height, 10)) { //if helptext is greater than 115 in length
-						toh.style.animation = 'scroll 5s linear 1s infinite alternate' //create scrolling animation
+					if (parseFloat(getComputedStyle(ht).height, 10) < parseFloat(getComputedStyle(toh).height, 10)) { // if helptext is greater than 115 in length
+						toh.style.animation = 'scroll 5s linear 1s infinite alternate' // create scrolling animation
 					}
 				}, 1)
-				if (ht.classList.contains('magic')) ht.classList.remove('magic')
-			} else if (ioBool == 'off') { //if onmouseout was triggered
-				toh.innerHTML = '' //set helptext to empty string
-				toh.style.animation = '' //end animation
-				if (!ht.classList.contains('magic')) ht.classList.add('magic')
+				ht.classList.toggle('magic', false)
+			} else if (ioBool == 'off') { // if onmouseout was triggered
+				toh.innerHTML = '' // set helptext to empty string
+				toh.style.animation = '' // end animation
+				ht.classList.toggle('magic', true)
 			}
 		}
 	}
+
 	function animationControl(a) {
 		qryA('.content .toggle .helptext > p').forEach(help => {
-			switch (a) { //switch between onmousedown and onmouseup to pause and unpause scrolling animation
+			switch (a) { // switch between onmousedown and onmouseup to pause and unpause scrolling animation
 				case 'pause':
 					help.style.animationPlayState = 'paused'
 					break
@@ -717,16 +721,19 @@
 			}
 		})
 	}
+
 	async function rollSomeDice() {
-		loader.style.visibility = 'visible' //set loader to visible while processing
-		await runGoogle('openHTML', ['diceroller']) //run dice roller code
-		getCurrent() //run getCurrent
-		loader.style.visibility = 'hidden' //set loader to hidden as processing ends
+		loader.classList.remove('magic') // set loader to visible while processing
+		await runGoogle('openHTML', ['diceroller']) // run dice roller code
+		getCurrent() // run getCurrent
+		loader.classList.add('magic') // set loader to hidden as processing ends
 	}
+
 	function addlevel() {
-		loader.style.visibility = 'visible'
+		loader.classList.remove('magic')
 		runGoogle("openHTML", ['level'])
 	}
+
 	async function getSpells(bool = false) {
 		spellsIsRunning = true
 		if (bool) ID('spellcontainer').className = ''
@@ -753,17 +760,17 @@
 		}
 		ID('spellcast').readonly = false
 		if (ID('spellcast').classList.contains('grayout')) ID('spellcast').classList.remove('grayout')
-		loader.style.visibility = 'hidden'
+		loader.classList.add('magic')
 		spellsIsRunning = false
 	}
+
 	function openSpells(n) {
 		if (!n.readonly) {
 			ID("main").classList.add('magic')
 			ID("spells").classList.remove('magic')
-		} else {
-			alert("Please allow the code a few seconds to process before trying again.")
-		}
+		} else alert("Please allow the code a few seconds to process before trying again.")
 	}
+
 	function closeSpells() {
 		ID("spells").classList.add('magic')
 		ID("main").classList.remove('magic')
@@ -771,28 +778,32 @@
 		ID('spellcast').classList.add('grayout')
 		getSpells()
 	}
+
 	function openTools() {
 		ID("main").classList.add('magic')
 		ID("tools").classList.remove('magic')
 	}
+
 	function closeTools() {
 		ID("tools").classList.add('magic')
 		ID("main").classList.remove('magic')
 	}
+
 	function useSlot(n, type) {
-		var current = ID(`cur${type}${n}`)
+		const current = ID(`cur${type}${n}`)
 		ID(`use${type}${n}`).disabled = true
 		ID(`use${type}${n}`).classList.add('grayout')
 		setTimeout(() => {
 			ID(`use${type}${n}`).disabled = false
 			ID(`use${type}${n}`).classList.remove('grayout')
 		}, 3000)
-		var cv = Number(current.value)
+		const cv = Number(current.value)
 		if (current.value != 0) {
 			current.value = cv - 1
 			runGoogle('useSpellSlot', [n, type])
 		}
 	}
+
 	function setSlots() {
 		const obj = {
 			sc1: { dis: (ID('cursc1').value > 0 || ID('cursc1').dataset.ignore == "false") ? true : false, val: Number(ID('cursc1').value) },
@@ -816,33 +827,35 @@
 		}
 		runGoogle('setSpellSlots', [obj])
 	}
+
 	function colorArray(percent) {
-		percent = parseFloat(percent) //makes sure  percent is a number
-		var red, green //defines a pair of variables to be assigned values later
-		const redMax = 255 //sets the max for red
-		const greenMax = 255 //sets the max for green
-		if (percent > 50) { //if percent is greater than 50
+		percent = parseFloat(percent) // makes sure  percent is a number
+		var red, green // defines a pair of variables to be assigned values later
+		const redMax = 255 // sets the max for red
+		const greenMax = 255 // sets the max for green
+		if (percent > 50) { // if percent is greater than 50
 			green = greenMax
-			red = (100 - percent) * 2 * (redMax / 100) //red = (100-percent)*2 * (redMax/100)
+			red = (100 - percent) * 2 * (redMax / 100) // red = (100-percent)*2 * (redMax/100)
 		} else if (percent < 50) {
 			red = redMax
-			green = percent * 2 * (greenMax / 100) //green = (percent*2) * (greenMax/100)
+			green = percent * 2 * (greenMax / 100) // green = (percent*2) * (greenMax/100)
 		} else if (percent == 50) {
 			red = redMax
 			green = greenMax
 		}
 		return [parseInt(red.toFixed(0)), parseInt(green.toFixed(0))]
 	}
+
 	function colorArrayB(percent) {
-		percent = parseFloat(percent) //makes sure  percent is a number
-		var red, green //defines a pair of variables to be assigned values later
-		const redMax = 255 //sets the max for red
-		const greenMax = 255 //sets the max for green
-		if (percent > 50) { //if percent is greater than 50
-			green = (percent - 50) * 2 * 1.72 + 83 //red = (100-percent)*2 * (redMax/100)
+		percent = parseFloat(percent) // makes sure  percent is a number
+		var red, green // defines a pair of variables to be assigned values later
+		const redMax = 255 // sets the max for red
+		const greenMax = 255 // sets the max for green
+		if (percent > 50) { // if percent is greater than 50
+			green = (percent - 50) * 2 * 1.72 + 83 // red = (100-percent)*2 * (redMax/100)
 			red = 83
 		} else if (percent < 50) {
-			red = -(percent - 50) * 2 * 1.72 + 83 //green = (percent*2) * (greenMax/100)
+			red = -(percent - 50) * 2 * 1.72 + 83 // green = (percent*2) * (greenMax/100)
 			green = 83
 		} else if (percent == 50) {
 			red = 83
@@ -850,6 +863,7 @@
 		}
 		return [parseInt(red.toFixed(0)), parseInt(green.toFixed(0))]
 	}
+
 	function limit() {
 		var res
 		while (true) {
@@ -859,66 +873,48 @@
 		}
 		HP.limit = res
 	}
+
 	function svgReturn() {
-		return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:krita="http://krita.org/namespaces/svg/krita" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" width="198pt" height="50.4pt" viewBox="0 0 198 50.4">
-<defs>
-  <clipPath id="clippath0" clipPathUnits="userSpaceOnUse">
-      <defs/>
-   <g id="clippath0" fill="none">
-     <g id="clipId0" fill="none">
-      <path id="shape0" fill="#000000" stroke-opacity="0" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-linejoin="bevel" d="M0 768L1024 768L1024 0L0 0Z" sodipodi:nodetypes="ccccc"/>
-     </g>
-    </g>
-  </clipPath>
- </defs>
-<g id="group0" transform="matrix(0.999999969724626 0 0 0.999999969724626 77.4001090249326 25.2)" fill="none">
-  <path id="shape0" transform="matrix(0.193640766149024 0 0 0.193939196689179 -2.1316282072803e-14 14.4222883617907)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M74.365 37.182L0 0" sodipodi:nodetypes="cc"/>
-  <g id="group1" transform="translate(14.4000955746722, -3.5527136788005e-15)" fill="none">
-   <path id="shape1" transform="matrix(0.193640766149024 0 0 0.193939196689179 79.2000415587819 3.5527136788005e-15)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 111.547C45.0315 92.7837 74.3643 48.7841 74.364 0" sodipodi:nodetypes="cc"/>
-   <path id="shape2" transform="matrix(0.193640766149024 0 0 0.193939196689179 14.3999019339062 8.07666230877994)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M334.641 69.9017C240.142 -7.29446 109.139 -21.8502 0 32.7197" sodipodi:nodetypes="cc"/>
-   <path id="shape3" transform="matrix(0.193640766149024 0 0 0.193939196689179 -7.105427357601e-15 14.4222883617907)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 37.182L74.364 0" sodipodi:nodetypes="cc"/>
-  </g>
- </g><g id="group2" transform="matrix(0.071999997820173 0 0 0.071999997820173 2.99726204866602e-06 0)" fill="none" clip-path="url(#clippath0)"/><path id="shape5" transform="matrix(0.193640760286477 0 0 0.193939190817597 84.6000597739046 3.56666508186944)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M74.365 0L0 37.182" sodipodi:nodetypes="cc"/><path id="shape6" transform="matrix(0.193640760286477 0 0 0.193939190817597 77.4001090249326 3.56666508186944)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M74.365 0L0 37.182" sodipodi:nodetypes="cc"/><path id="shape7" transform="matrix(0.193640760286477 0 0 0.193939190817597 91.8002041636366 3.56666508186944)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 0L74.364 37.182" sodipodi:nodetypes="cc"/><path id="shape8" transform="matrix(0.193640760286477 0 0 0.193939190817597 99.0001549126083 3.56666508186944)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 0L74.365 37.182" sodipodi:nodetypes="cc"/><path id="shape9" transform="matrix(0.193640760286477 0 0 0.193939190817597 41.4001616393133 3.56666508186944)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 0C46.1702 53.4598 122.731 68.7718 185.911 37.182" sodipodi:nodetypes="cc"/><path id="shape10" transform="matrix(0.193640760286477 0 0 0.193939190817597 34.2000172495813 3.56666508186944)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 0C70.5496 65.3874 174.24 80.2002 260.276 37.182" sodipodi:nodetypes="cc"/><path id="shape11" transform="matrix(0.193640760286477 0 0 0.193939190817597 19.800115751279 3.56666508186945)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M74.364 0C29.3325 18.7633 -0.000269133 62.7629 1.852e-09 111.547" sodipodi:nodetypes="cc"/><path id="shape12" transform="matrix(0.193640760286477 0 0 0.193939190817597 27.000066500559 3.56666508186944)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M74.365 0C29.3331 18.7629 -0.000100927 62.7626 2.60444e-10 111.547" sodipodi:nodetypes="cc"/><path id="shape13" transform="matrix(0.193640760286477 0 0 0.193939190817597 106.20010566158 3.56666508186944)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 37.182C109.139 91.7519 240.142 77.1961 334.641 0" sodipodi:nodetypes="cc"/><path id="shape14" transform="matrix(0.193640760286477 0 0 0.193939190817597 113.400250051313 3.56666508186945)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 37.182C86.036 80.2002 189.726 65.3874 260.276 0" sodipodi:nodetypes="cc"/><g id="group3" transform="matrix(0.999999969724626 0 0 0.999999969724626 12.60008754616 3.56666508186944)" fill="none">
-  <path id="shape15" transform="matrix(0.193640766149024 0 0 0.193939196689179 93.600020949196 8.88178419700125e-16)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 0L74.365 37.182" sodipodi:nodetypes="cc"/>
-  <g id="group4" fill="none">
-   <path id="shape16" transform="matrix(0.193640766149024 0 0 0.193939196689179 79.2001190152899 8.88178419700125e-16)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M74.364 0L0 37.182" sodipodi:nodetypes="cc"/>
-   <path id="shape17" transform="matrix(0.193640766149024 0 0 0.193939196689179 14.3999793904143 2.66453525910038e-15)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 0C94.4986 77.1961 225.502 91.7519 334.641 37.182" sodipodi:nodetypes="cc"/>
-   <path id="shape18" transform="matrix(0.193640766149024 0 0 0.193939196689179 -7.105427357601e-15 2.66453525910038e-15)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M74.3644 0C29.3328 18.7631 -0.00020185 62.7628 1.04174e-09 111.547" sodipodi:nodetypes="cc"/>
-  </g>
-  <path id="shape19" transform="matrix(0.193640766149024 0 0 0.193939196689179 108.000116523868 8.88178419700125e-16)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 37.182C63.18 68.7718 139.741 53.4598 185.911 0" sodipodi:nodetypes="cc"/>
-  <path id="shape20" transform="matrix(0.193640766149024 0 0 0.193939196689179 144.000064999399 8.88178419700125e-16)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M74.365 111.547C74.3651 62.7626 45.0319 18.7629 0 0" sodipodi:nodetypes="cc"/>
- </g><path id="shape21" transform="matrix(0.193640760286477 0 0 0.193939190817597 163.800292575636 3.56666508186945)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M74.364 111.547C74.3643 62.7629 45.0315 18.7633 0 0" sodipodi:nodetypes="cc"/><path id="shape22" transform="matrix(0.193640760286477 0 0 0.193939190817597 171.000243324607 3.56666508186945)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M74.364 111.547C74.3643 62.7629 45.0315 18.7633 0 0" sodipodi:nodetypes="cc"/><path id="shape23" transform="matrix(0.193640760286477 0 0 0.193939190817597 27.000066500559 25.2)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M2.60443e-10 0C-0.000100927 48.7844 29.3331 92.7841 74.365 111.547" sodipodi:nodetypes="cc"/><path id="shape24" transform="matrix(0.193640760286477 0 0 0.193939190817597 163.800292575636 25.2)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 111.547C45.0315 92.7837 74.3643 48.7841 74.364 0" sodipodi:nodetypes="cc"/><path id="shape25" transform="matrix(0.193640760286477 0 0 0.193939190817597 41.4001616393133 36.4593948053391)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M185.911 16.3087C122.731 -15.2811 46.1702 0.0309332 0 53.4907" sodipodi:nodetypes="cc"/><path id="shape26" transform="matrix(0.193640760286477 0 0 0.193939190817597 84.6000597739046 39.6222879251505)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M74.365 37.182L0 0" sodipodi:nodetypes="cc"/><path id="shape27" transform="matrix(0.193640760286477 0 0 0.193939190817597 120.600200800284 36.4593948053391)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M185.911 53.4907C139.741 0.0309332 63.18 -15.2811 0 16.3087" sodipodi:nodetypes="cc"/><g id="group5" transform="matrix(0.999999969724626 0 0 0.999999969724626 5.40007870516175 3.56666508186944)" fill="none">
-  <g id="group6" fill="none">
-   <path id="shape28" transform="matrix(0.193640766149024 0 0 0.193939196689179 79.1999834665519 8.88178419700125e-16)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M74.365 37.182L0 0" sodipodi:nodetypes="cc"/>
-   <path id="shape29" transform="matrix(0.193640766149024 0 0 0.193939196689179 93.600079041224 8.88178419700125e-16)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 37.182L74.365 0" sodipodi:nodetypes="cc"/>
-   <path id="shape30" transform="matrix(0.193640766149024 0 0 0.193939196689179 -2.1316282072803e-14 8.88178419700125e-16)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 111.547C142.362 101.729 281.37 63.8173 409.005 0" sodipodi:nodetypes="cc"/>
-   <path id="shape31" transform="matrix(0.193640766149024 0 0 0.193939196689179 108.000174615896 8.88178419700125e-16)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 0C127.635 63.8173 266.643 101.729 409.005 111.547" sodipodi:nodetypes="cc"/>
-  </g>
-  <g id="group7" transform="translate(4.2632564145606e-14, 21.6333355730878)" fill="none">
-   <path id="shape32" transform="matrix(0.193640766149024 0 0 0.193939196689179 108.000174615896 1.06581410364015e-13)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M409.005 0C266.643 9.81819 127.635 47.7297 0 111.547" sodipodi:nodetypes="cc"/>
-   <g id="group8" fill="none">
-    <g id="group9" fill="none">
-     <path id="shape33" transform="matrix(0.193640766149024 0 0 0.193939196689179 -1.4210854715202e-14 0)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M409.005 111.547C281.37 47.7297 142.362 9.81823 0 0" sodipodi:nodetypes="cc"/>
-     <path id="shape34" transform="matrix(0.193640766149024 0 0 0.193939196689179 79.1999834665519 14.4222883617908)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M74.365 0L0 37.182" sodipodi:nodetypes="cc"/>
-    </g>
-    <path id="shape35" transform="matrix(0.193640766149024 0 0 0.193939196689179 93.600079041224 14.4222883617908)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 0L74.365 37.182" sodipodi:nodetypes="cc"/>
-   </g>
-  </g>
- </g><path id="shape36" transform="matrix(0.193640760286477 0 0 0.193939190817597 19.800115751279 25.2)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M1.85202e-09 0C-0.000269133 48.7841 29.3325 92.7837 74.364 111.547" sodipodi:nodetypes="cc"/><path id="shape37" transform="matrix(0.193640760286477 0 0 0.193939190817597 99.0001549126083 39.6222879251506)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 37.182L74.365 0" sodipodi:nodetypes="cc"/><g id="group10" transform="matrix(0.999999969724626 0 0 0.999999969724626 113.400250051313 25.2)" fill="none">
-  <path id="shape38" transform="matrix(0.193640766149024 0 0 0.193939196689179 -7.105427357601e-15 9.69274499816377)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M260.276 61.5687C189.726 -3.81869 86.036 -18.6315 0 24.3867" sodipodi:nodetypes="cc"/>
-  <path id="shape39" transform="matrix(0.193640766149024 0 0 0.193939196689179 43.1998994424842 7.105427357601e-15)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 111.547C45.0319 92.7841 74.3651 48.7844 74.365 0" sodipodi:nodetypes="cc"/>
- </g><path id="shape40" transform="matrix(0.193640760286477 0 0 0.193939190817597 34.2000172495813 34.8927447047123)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M260.276 24.3867C174.24 -18.6315 70.5496 -3.81869 0 61.5687" sodipodi:nodetypes="cc"/><g id="group11" transform="matrix(0.999999969724626 0 0 0.999999969724626 12.60008754616 25.2)" fill="none">
-  <path id="shape41" transform="matrix(0.193640766149024 0 0 0.193939196689179 93.600020949196 14.4222883617907)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M0 37.182L74.365 0" sodipodi:nodetypes="cc"/>
-  <g id="group12" fill="none">
-   <path id="shape42" transform="matrix(0.193640766149024 0 0 0.193939196689179 79.2001190152899 14.4222883617907)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M74.364 37.182L0 0" sodipodi:nodetypes="cc"/>
-   <g id="group13" fill="none">
-    <path id="shape43" transform="matrix(0.193640766149024 0 0 0.193939196689179 -7.105427357601e-15 7.105427357601e-15)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M1.04176e-09 0C-0.00020185 48.7842 29.3328 92.7839 74.3644 111.547" sodipodi:nodetypes="cc"/>
-    <path id="shape44" transform="matrix(0.193640766149024 0 0 0.193939196689179 14.3999793904143 8.07666230877994)" fill="none" stroke="#000000" stroke-width="2.52" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2.01600003242493" d="M334.641 32.7197C225.502 -21.8502 94.4986 -7.29446 0 69.9017" sodipodi:nodetypes="cc"/>
-   </g>
-  </g>
- </g>
-</svg>`
-	}
+		return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 290 70">
+	<style>
+		path { fill: none; stroke: black; }
+
+		/* @media (prefers-color-scheme: light) {
+		path { stroke: black; }
+		}
+
+		@media (prefers-color-scheme: dark) {
+		path { stroke: white; }
+		} */
+	</style>
+	<g id="paths">
+		<path d="
+		M145,15
+		l20,-10
+		Q240,32.5 280,35
+	" />
+		<path d="
+		M155,5
+		Q192.5,30 230,5
+		q20,10 20,30
+	" />
+		<path d="
+		M145,5
+		Q192.5,35 240,5
+		q20,10 20,30
+	" />
+		<path d="
+		M135,5
+		Q192.5,40 250,5
+		q20,10 20,30
+	" />
+	</g>
+	<use href="#paths" transform="scale(-1,1)" transform-origin="145 35" />
+	<use href="#paths" transform="scale(1,-1)" transform-origin="145 35" />
+	<use href="#paths" transform="scale(-1,-1)" transform-origin="145 35" />
+</svg>
+`}
+
 </script>
 
 </html>

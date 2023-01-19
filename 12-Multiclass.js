@@ -11,7 +11,7 @@ function getLevels() {
 
 /** Sets buffer range to selection and opens editlevel dialog
  * @param {string} selection */
-function levelBuffer(selection) { // 
+function levelBuffer(selection) {
 	const ss = SpreadsheetApp.getActiveSpreadsheet() // define spreadsheet reference
 	ss.getRange('Character!AS1').setValue(selection) // set buffer range to selection
 	openHTML('editlevel', (['addlevel', 'add'].some(x => x == selection)) ? 'Add Level' : selection)
@@ -44,7 +44,7 @@ function getClassInfo() { // returns level info
 		for (let i = 1; i <= classRange.getNumRows(); i++) { // loop through classRange
 			if (classRange.getCell(i, 1).getValue() == current) {
 				// ^if current is the same as the value of the first column
-				const info = { // define info object that contains
+				const info = { // define info object that contains:
 					class: cell(i, 1), // the class name
 					subclass: cell(i, 2), // the subclass name
 					level: cell(i, 3), // the number of levels in that class
@@ -77,7 +77,7 @@ function addEditInfo(className, subclass, level, hitdie, spells, x, selection) {
 		levelBuffer(selection) // save selection to buffer
 		return // end execution
 	} else { // otherwise
-		const cell = classRange.getCell(x, i + 1) // define reference to cell
+		const cell = classRange.getCell(x, 1) // define reference to cell
 		ss.getSheetByName('Character').getRange(cell.getRow(), cell.getColumn(), 1, 5).setValues([info])
 		// ^set values of row in class storage to the contents of info
 	}
@@ -178,11 +178,15 @@ function adjustNamedRanges(ss) {
 	}
 	const lvlRanges = ss.getNamedRanges().filter(elem => elem.getName().includes("Lvl") && elem.getName() != "Lvl")
 	// ^defines an array of named ranges whose names include the string 'Lvl' but are not equal to 'Lvl'
-	for (a in lvlRanges) { // loop through lvlRanges
+	for (let a in lvlRanges) { // loop through lvlRanges
+		console.log(lvlRanges[a].getName())
 		const row = lvlRanges[a].getRange().getRow() - 6
 		// ^get the row (relative to the range to be used in getCell) of the current named range
-		if (classes.getCell(row, 1).isBlank()) lvlRanges[a].remove()
-		// ^remove the current named range if the first column of the current row is blank
+		if (classes.getCell(row, 1).isBlank()) {
+			lvlRanges[a].remove()
+			continue
+		}
+		// ^remove the current named range if the first column of the current row is blank and continue
 		const param1 = classes.getCell(row, 1).getValue().replace(/ /g, "")
 		// ^get the value of the first column of the current row and remove all spaces
 		const param2 = lvlRanges[a].getName().replace("Lvl", "")

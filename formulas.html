@@ -97,17 +97,14 @@
 
 	.list {
 		width: 100%;
-
 	}
 </style>
 
 <body class="content">
 	<div id="preface" style="font-size: 20px;"><strong>Click on a formula to copy it.</strong></div>
 	<div id="formulas">
-		<!--Formula Builders-->
-		<div id="templates" class="templates">
-
-		</div>
+		<!--Formula Builders (Right now, this is nothing. I might implement this in the future)-->
+		<div id="templates" class="templates"></div>
 		<!--Pre-Written Formulas-->
 		<div id="prewritten" class="prewritten">
 			<table class="list" id="prelist">
@@ -117,122 +114,76 @@
 </body>
 
 <script>
-	/**
-	 * @param {string} f
-	 * @param {any[]} [arr]
+	/** Returns the value of the function called
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
 	*/
 	function runGoogleWithReturn(f, arr) {
-		if (arguments.length == 1) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(stuff => resolve(stuff))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`)
-			})
-		} else if (arguments.length == 2) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(stuff => resolve(stuff))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
-			})
-		}
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
 	}
-	/**
-	 * @param {string} f
-	 * @param {any[]} [arr]
+	/** Simply calls a function with no return value
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
 	*/
 	function runGoogle(f, arr) {
-		if (arguments.length == 1) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(() => resolve(''))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`)
-			})
-		} else if (arguments.length == 2) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(() => resolve(''))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
-			})
-		}
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
 	}
-	/** @param {string} n */
-	let ID = n => document.getElementById(n)
-	/** @param {string} n */
-	let qry = n => document.querySelector(n)
-	/** @param {string} n */
-	let qryA = n => document.querySelectorAll(n)
-	const data = getData()
-	/** @param {Event} evt */
-	function pageTurner(evt, page) {
-		var i, tabcontent, tablinks
-		tabcontent = document.getElementsByClassName("tabcontent")
-		for (i = 0; i < tabcontent.length; i++) {
-			tabcontent[i].style.display = "none"
-		}
-		tablinks = document.getElementsByClassName("tablinks")
-		for (i = 0; i < tablinks.length; i++) {
-			tablinks[i].className = tablinks[i].className.replace(" active", "")
-		}
-		document.getElementById(page).style.display = "block"
-		evt.currentTarget.className += " active"
-	}
+	/** @param {string} n */ let ID = n => document.getElementById(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qry = (n, el) => (el != undefined) ? el.querySelector(n) : document.querySelector(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qryA = (n, el) => (el != undefined) ? el.querySelectorAll(n) : document.querySelectorAll(n)
 
-	document.addEventListener("DOMContentLoaded", () => {
-		const height = ID('preface').clientHeight
-		ID('formulas').style.height = `calc(100% - ${height + 1}px)`
-		const data = getData()
+	document.addEventListener("DOMContentLoaded", () => { // on DOM Content Loaded
+		const height = ID('preface').clientHeight // get the height of the preface text
+		ID('formulas').style.height = `calc(100% - ${height + 1}px)` // set the height of the formulas div
+		const data = getData() // every prewritten formula for each class
 		data.forEach(x => x.features.sort((a, b) => {
-			const nameA = a.name.toUpperCase(); // ignore upper and lowercase
-			const nameB = b.name.toUpperCase(); // ignore upper and lowercase
-			if (nameA < nameB) {
-				return -1;
-			}
-			if (nameA > nameB) {
-				return 1;
-			}
-
-			// names must be equal
-			return 0;
+			const nameA = a.name.toUpperCase() // ignore upper and lowercase
+			const nameB = b.name.toUpperCase() // ^^^
+			if (nameA < nameB) return -1
+			if (nameA > nameB) return 1
+			return 0
 		}))
-		var output = '<colgroup span="1" width="30%" style="border-right: 1px solid #eee"></colgroup>';
-		for (let a of data) {
-			output += `\n<tr>
-	<th colspan="2">
+		const output = data.reduce((tot, cur) => tot + `\n<tr><th colspan="2">
 		<table class="subtable" width="100%">
 			<colgroup span="1" width="30%" style="border-right: 1px solid #eee"></colgroup>
-			<tr>
-				<th colspan="2">
-					${a.class}
-				</th>
-			</tr>
-			<tr>
-				<th>Feature Name</th>
-				<th>Formula</th>
-			</tr>
+			<tr><th colspan="2">${cur.class}</th></tr>
+			<tr><th>Feature Name</th><th>Formula</th></tr>
 		</table>
-	</th>
-</tr>`
-			for (let b of a.features) {
-				output += `\n<tr>
-	<td onclick="copier(this)">${b.name}</td>
-	<td onclick="copier(this)">${b.formula}</td>
-</tr>`
-			}
-		}
-		ID('prelist').innerHTML = output
+	</th></tr>` + cur.features.reduce((tot1, cur1) => tot1 + `\n<tr><td onclick="copier(this)">${cur1.name}</td>
+	<td onclick="copier(this)">${cur1.formula}</td></tr>`, ''),
+			'<colgroup span="1" width="30%" style="border-right: 1px solid #eee"></colgroup>')
+		// ^reduce through data to generate innerHTML for prelist table
+		ID('prelist').innerHTML = output // apply output to prelist innerhtml
 	})
 
 	/** @param {Element} e */
 	async function copier(e) {
 		const formula = (e.nextElementSibling == null ?
-			e.innerHTML :
-			e.nextElementSibling.innerHTML)
+			e.innerHTML : e.nextElementSibling.innerHTML) // makes sure that the element containing the formula is the one being used
 			.replace(/(?<=\&)amp;/g, '')
-			.replace(/&\w+?;/g, m => {
+			.replace(/&\w+?;/g, m => { // replace all incorrect symbols
 				const stuff = {
 					"&lt;": "<",
 					"&gt;": ">",
@@ -240,11 +191,11 @@
 				}
 				return m in stuff ? stuff[m] : m
 			})
-		await navigator.clipboard.writeText(formula)
-		alert(`Copied '${formula}' to clipboard`)
+		await navigator.clipboard.writeText(formula) // copy formula to clipboard
+		alert(`Copied '${formula}' to clipboard`) // alert user of copy
 	}
 
-	function getData() {
+	function getData() { // returns the features and their formulas for each class
 		return [
 			{
 				class: 'Artificer', features: [

@@ -49,6 +49,10 @@
 		animation: spin 2s linear infinite;
 	}
 
+	.magic {
+		display: none !important;
+	}
+
 	@keyframes spin {
 		0% {
 			transform: rotate(0deg);
@@ -61,97 +65,89 @@
 </style>
 
 <body>
-	<div id="loader" class="loader" style="visibility: hidden;"></div>
+	<div id="loader" class="loader magic"></div>
 	<div id="container" class="container">
 	</div>
 </body>
 
 <script>
-	var formattedIDs = []
-	/**
-	 * @param {string} f
-	 * @param {any[]} [arr]
+	const formattedIDs = []
+	/** Returns the value of the function called
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
 	*/
 	function runGoogleWithReturn(f, arr) {
-		if (arguments.length == 1) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(stuff => resolve(stuff))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`)
-			})
-		} else if (arguments.length == 2) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(stuff => resolve(stuff))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
-			})
-		}
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
+		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(stuff => resolve(stuff))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
 	}
-	/**
-	 * @param {string} f
-	 * @param {any[]} [arr]
+	/** Simply calls a function with no return value
+	 * @param {string} f The function name
+	 * @param {any[]} [arr] The arguments to be passed to the function
 	*/
 	function runGoogle(f, arr) {
-		if (arguments.length == 1) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(() => resolve(''))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`)
-			})
-		} else if (arguments.length == 2) {
-			return new Promise((resolve, reject) => {
-				google.script.run
-					.withSuccessHandler(() => resolve(''))
-					.withFailureHandler(err => reject(err))
-					.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
-			})
-		}
-	}
-	async function closer(evt) {
-		document.getElementById('loader').style.visibility = 'visible'
-		var x
-		formattedIDs.forEach((elem, i) => {
-			if (elem[0] == evt.id) x = i
+		if (arguments.length == 1) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`)
 		})
+		else if (arguments.length == 2) return new Promise((resolve, reject) => {
+			google.script.run
+				.withSuccessHandler(() => resolve(''))
+				.withFailureHandler(err => reject(err))
+				.callLibraryFunction(`CharacterSheetCode.${f}`, arr)
+		})
+	}
+	/** @param {string} n */ let ID = n => document.getElementById(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qry = (n, el) => (el != undefined) ? el.querySelector(n) : document.querySelector(n)
+	/** @param {string} n @param {HTMLElement|Element} [el] */ let qryA = (n, el) => (el != undefined) ? el.querySelectorAll(n) : document.querySelectorAll(n)
+
+	async function closer(evt) {
+		ID('loader').classList.remove('magic') // show loader
 		if (evt.id == "addlevel") {
-			await runGoogle("levelBuffer", ['addlevel'])
-			google.script.host.close()
-		} else {
-			await runGoogle("levelBuffer", [formattedIDs[x][1]])
-			google.script.host.close()
+			await runGoogle("levelBuffer", ['addlevel']) // add this to level buffer
+			google.script.host.close() // close the dialog
+		} else { // if editing a level
+			const x = formattedIDs.find(item => item[0] == evt.id) // get the item that matches the element
+			await runGoogle("levelBuffer", [x[1]]) // add this to level buffer
+			google.script.host.close() // close the dialog
 		}
 	}
-	document.querySelectorAll('input').forEach(x => x.autocomplete = 'off')
-	document.addEventListener("DOMContentLoaded", async () => {
-		document.getElementById('loader').style.visibility = 'visible'
-		const className = await runGoogleWithReturn("getLevels")
-		var html = "<div>Select an option</div>"
-		let capitalizer = v => { //this capitalizes the traits of the weapon
+	qryA('input').forEach(x => x.autocomplete = 'off')
+	document.addEventListener("DOMContentLoaded", async () => { // on DOM Content Loaded
+		ID('loader').classList.remove('magic') // show loader
+		const /** @type {{arr: any[],lvl: number}} */ className = await runGoogleWithReturn("getLevels") // get Levels and their info
+		/** @param {string} v */
+		let capitalizer = v => { // this capitalizes the traits of the weapon
 			if (v.includes(' ')) { //if v includes spaces
 				const arr = v.split(" ")
 				for (j in arr) {
-					if (arr[j].includes('\n')) {
-						break
-					} else {
-						arr[j] = arr[j].charAt(0).toUpperCase() + arr[j].slice(1).toLowerCase()
-					}
+					if (arr[j].includes('\n')) break
+					else arr[j] = arr[j].charAt(0).toUpperCase() + arr[j].slice(1).toLowerCase()
 				}
 				return arr.join(" ")
-			} else {
-				return v.charAt(0).toUpperCase() + v.slice(1).toLowerCase()
-			}
+			} else return v.charAt(0).toUpperCase() + v.slice(1).toLowerCase()
 		}
-		var formattedNames = className.arr.map(x => capitalizer(x).replace(/ /g, ""))
-		formattedNames.forEach((name, i) => {
-			html += `\n<button id="edit${name}" class="option" onclick="closer(this);">Level Up/Edit ${capitalizer(className.arr[i])}</button><br>`
-			formattedIDs.push([`edit${name}`, className.arr[i]])
-		})
-		if (className.lvl < 20) html += `\n<button id="addlevel" class="option" onclick="closer(this);">Add New Class</button>`
-		document.getElementById('container').innerHTML = html
-		document.getElementById('loader').style.visibility = 'hidden'
+		const formattedNames = className.arr.map(x => capitalizer(x).replace(/ /g, "")), // get formatted names
+			html = formattedNames.reduce((tot, name, i) => {
+				formattedIDs.push([`edit${name}`, className.arr[i]])
+				return tot +
+					`\n<button id="edit${name}" class="option" onclick="closer(this);">Level Up/Edit ${capitalizer(className.arr[i])}</button><br>`
+			}, "<div>Select an option</div>") +
+				(className.lvl < 20 ? `\n<button id="addlevel" class="option" onclick="closer(this);">Add New Class</button>` : '')
+		// ^generate html with reduce function while also creating formattedIDs array
+		ID('container').innerHTML = html // assign generated html to container innerHTML
+		ID('loader').classList.add('magic') // hide loader
 	})
 </script>
 

@@ -1237,55 +1237,59 @@
 
 	/** @param {HTMLElement|Element} die */
 	function runSubAnimation(die, click = false) {
-		const dx = parseInt(die.id.slice(1))
-		const holder = ID(`rnholderd${dx}`)
-		holder.classList.add('unloadnum')
-		setTimeout(() => {
-			ID(`randomnumberd${dx}`).innerHTML = ''
-			holder.style.visibility = 'hidden'
-			holder.classList.remove('unloadnum')
-			ID(`d${dx}rolls`).innerHTML = 'Rolled: '
-			ID(`d${dx}total`).innerHTML = 'Total: '
-		}, 975)
-		var els = Array.from(qryA('svg polygon,polyline', die))
-		if (die.id == 'd12') els.push(ID('d12a'))
-		const bool = [4, 6].some(x => dx == x)
-		els.forEach(poly => {
-			poly.classList.add(poly.id)
-			poly.onanimationend = () => {
-				poly.classList.remove(poly.id)
-				const rndm = Math.floor(Math.random() * dx) + 1
-				const rvalue = ID(`randomnumberd${dx}`)
-				rvalue.innerHTML = rndm
-				holder.classList.add(`loadnum${dx == 6 ? '1' : ''}`)
-				const interval = !bool ? setInterval(() => { rvalue.innerHTML = Math.floor(Math.random() * dx) + 1; }, 200) : 0
-				holder.style.visibility = 'visible'
-				holder.onanimationend = () => {
-					holder.classList.remove(`loadnum${dx == 6 ? '1' : ''}`)
-					if (bool) update()
+		return new Promise((res) => {
+			const dx = parseInt(die.id.slice(1))
+			const holder = ID(`rnholderd${dx}`)
+			holder.classList.add('unloadnum')
+			setTimeout(() => {
+				ID(`randomnumberd${dx}`).innerHTML = ''
+				holder.style.visibility = 'hidden'
+				holder.classList.remove('unloadnum')
+				ID(`d${dx}rolls`).innerHTML = 'Rolled: '
+				ID(`d${dx}total`).innerHTML = 'Total: '
+			}, 975)
+			var els = Array.from(qryA('svg polygon,polyline', die))
+			if (die.id == 'd12') els.push(ID('d12a'))
+			const bool = [4, 6].some(x => dx == x)
+			els.forEach(poly => {
+				poly.classList.add(poly.id)
+				poly.onanimationend = () => {
+					poly.classList.remove(poly.id)
+					const rndm = Math.floor(Math.random() * dx) + 1
+					const rvalue = ID(`randomnumberd${dx}`)
+					rvalue.innerHTML = rndm
+					holder.classList.add(`loadnum${dx == 6 ? '1' : ''}`)
+					const interval = !bool ?
+						setInterval(() => { rvalue.innerHTML = Math.floor(Math.random() * dx) + 1 }, 200) : 0
+					holder.style.visibility = 'visible'
+					holder.onanimationend = () => {
+						holder.classList.remove(`loadnum${dx == 6 ? '1' : ''}`)
+						if (bool) update()
+					}
+					if (interval) setTimeout(() => {
+						clearInterval(interval)
+						update()
+					}, 1000)
 				}
-				if (interval) setTimeout(() => {
-					clearInterval(interval)
-					update()
-				}, 1000)
+			})
+			function update() {
+				const numdice = ID(`numd${dx}`).value,
+					rollsElem = ID(`d${dx}rolls`),
+					totalElem = ID(`d${dx}total`),
+					rnum = Number(ID(`randomnumberd${dx}`).innerHTML),
+					rolls = [rnum]
+				if (numdice == 1 && !click) {
+					rollsElem.innerHTML = `Rolled: ${rnum}`
+					totalElem.innerHTML = `Total: ${rnum}`
+				} else if (numdice > 1 && !click) {
+					for (let i = 1; i < numdice; i++) rolls.push(Math.floor(Math.random() * dx) + 1)
+					const total = rolls.reduce((tot, cur) => tot + cur, 0)
+					rollsElem.innerHTML = `Rolled: ${rolls.join(', ')}`
+					totalElem.innerHTML = `Total: ${total}`
+				}
+				res()
 			}
 		})
-		function update() {
-			const numdice = ID(`numd${dx}`).value,
-				rollsElem = ID(`d${dx}rolls`),
-				totalElem = ID(`d${dx}total`),
-				rnum = Number(ID(`randomnumberd${dx}`).innerHTML),
-				rolls = [rnum]
-			if (numdice == 1 && !click) {
-				rollsElem.innerHTML = `Rolled: ${rnum}`
-				totalElem.innerHTML = `Total: ${rnum}`
-			} else if (numdice > 1 && !click) {
-				for (let i = 1; i < numdice; i++) rolls.push(Math.floor(Math.random() * dx) + 1)
-				const total = rolls.reduce((tot, cur) => tot + cur, 0)
-				rollsElem.innerHTML = `Rolled: ${rolls.join(', ')}`
-				totalElem.innerHTML = `Total: ${total}`
-			}
-		}
 	}
 
 	function multiroller() {
@@ -1295,8 +1299,8 @@
 		for (let x of dx) (Number(ID(`numd${x}`).value) > 0 ? dns : other).push(ID(`d${x}`))
 		if (other.length) resetMiscDice(other.map(x => Number(x.id.slice(1))), false)
 		if (dns.length > 0) {
-			dns.forEach(f => runSubAnimation(f))
-			setTimeout(() => {
+			const proms = dns.map(f => runSubAnimation(f))
+			Promise.all(proms).then(() => {
 				for (let j of dx) grandTotal.totals.push(Number(ID(`d${j}total`).innerHTML.slice(7)))
 				const miscMod = Number(ID('miscmodifier').value),
 					grand = ID('grandtotal')
@@ -1305,7 +1309,7 @@
 						(miscMod != 0 ? `${miscMod > 0 ? '+' : ''}${miscMod}` : '') +
 						`=${grandTotal.final + miscMod}`
 				} else grand.innerHTML = `Total: ${grandTotal.final}`
-			}, 6000)
+			})
 		}
 	}
 
