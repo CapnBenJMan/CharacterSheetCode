@@ -6,6 +6,7 @@ function sideBar() { // opens sidebar and creates menu
 		.addItem('Short Rest', 'CharacterSheetCode.shortRest')
 		.addItem('Add Rest', 'CharacterSheetCode.addLongRest')
 		.addItem('Remove Rest', 'CharacterSheetCode.removeLongRest')
+		.addItem('Fix Broken Images', 'CharacterSheetCode.fixBrokenImages')
 		.addToUi() // creates menu item in case user closes sidebar
 	sideBarLoader() // opens sidebar
 }
