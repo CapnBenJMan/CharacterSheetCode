@@ -5,11 +5,11 @@ function jsonSwap(e) {
 
 	// Get Object that represents edited range
 	var curr = '' // variable used for debugging function
-	let time = x => { // debugging function for logging execution time
-		console.timeEnd(curr)
-		console.time(x)
-		curr = x
-	}
+	// let time = x => { // debugging function for logging execution time
+	// 	console.timeEnd(curr)
+	// 	console.time(x)
+	// 	curr = x
+	// }
 	const value = e.value || "Page 1"
 	const oldValue = e.oldValue || "Page 1"
 	console.log("JSON")
