@@ -165,7 +165,7 @@ function openHTML(file, titleOverride = '') {
 		{ name: '', width: 0, height: 0, title: '', func: ui.showModalDialog } // template
 	].find(x => x.name == file)
 	fileInfo.func( // call the function to show the dialog
-		HtmlService.createHtmlOutputFromFile(fileInfo.name) // create html output
+		HtmlService.createHtmlOutputFromFile(`HTML/${fileInfo.name}`) // create html output
 			.setWidth(fileInfo.width).setHeight(fileInfo.height), // set width and height
 		(titleOverride !== '') ? titleOverride : fileInfo.title) // set title
 }

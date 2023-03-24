@@ -12,7 +12,7 @@ function sideBar() { // opens sidebar and creates menu
 }
 /** Opens the sidebar */
 function sideBarLoader() { // opens sidebar
-	var sb = HtmlService.createHtmlOutputFromFile('sidebar')
+	var sb = HtmlService.createHtmlOutputFromFile('HTML/sidebar')
 		.setTitle(`Automation Sidebar`) // constructs sidebar
 	SpreadsheetApp.getUi().showSidebar(sb) // opens sidebar
 }

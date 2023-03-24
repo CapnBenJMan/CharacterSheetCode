@@ -8,10 +8,10 @@ The license in its entirety can be found at https://creativecommons.org/licenses
 /** @param {GoogleAppsScript.Events.SheetsOnOpen} i */
 function version(i) {
 	//version update
-	const v1 = "v3.6.3" //sheet/code version
+	const v1 = "v3.6.4" // sheet/code version
 	var rangeLHT = i.source.getRange("Legal and How-to!M4")
 	var rangeLBV = i.source.getRange('Legal and How-to!AC5')
-	const v2 = 36 //compatible library version. CHECK WHENEVER YOU UPDATE AND MAKE SURE THIS NUMBER IS 1 + WHATEVER THE LATEST VERSION WHEN YOU DEPLOY A NEW VERSION
+	const v2 = 37 // compatible library version. CHECK WHENEVER YOU UPDATE AND MAKE SURE THIS NUMBER IS 1 + WHATEVER THE LATEST VERSION WHEN YOU DEPLOY A NEW VERSION
 	if (rangeLHT.getValue() != v1) {
 		rangeLHT.setValue(v1) // set sheet version to current value if different
 	}
